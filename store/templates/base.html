@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lenskart Clone | Premium Eyewear</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/lenskart.css' %}">
+</head>
+<body>
+
+<header>
+    <div class="header-top">
+        <a href="{% url 'products' %}" class="logo">LENSKART</a>
+        
+        <div class="search-bar">
+            <form method="GET" action="{% url 'products' %}" style="width: 100%;">
+                <input type="text" name="q" placeholder="What are you looking for?">
+            </form>
+        </div>
+
+        <div class="nav-links">
+            <a href="{% url 'orders' %}">Track Order</a>
+            {% if user.is_authenticated %}
+                <a href="#">Hi, {{ user.username }}</a>
+                <a href="{% url 'wishlist' %}">Wishlist</a>
+                <a href="{% url 'cart' %}" class="cart-icon">Cart <span class="cart-badge">🛒</span></a>
+                <a href="{% url 'logout' %}">Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}">Sign In & Sign Up</a>
+            {% endif %}
+            
+            {% if user.is_staff %}
+                <a href="{% url 'admin_dashboard' %}">Admin</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="nav-bottom">
+        <a href="{% url 'products' %}">All Eyewear</a>
+        <a href="{% url 'products' %}?category=eyeglasses">Eyeglasses</a>
+        <a href="{% url 'products' %}?category=computer_glasses">Computer Glasses</a>
+        <a href="{% url 'products' %}?category=sunglasses">Sunglasses</a>
+        <a href="{% url 'products' %}?category=contact_lenses">Contact Lenses</a>
+        <a href="{% url 'ai_suggest' %}" style="color: var(--secondary-color);">Try On 3D</a>
+    </div>
+</header>
+
+<main class="main-container">
+    {% if messages %}
+        <div style="padding: 15px 5%; background: #e6f7ff; color: #0050b3; border-bottom: 1px solid #91d5ff;">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+</main>
+
+<footer style="background: var(--primary-color); color: white; padding: 40px 5%; margin-top: 50px;">
+    <p>&copy; 2026 Lenskart Clone. All rights reserved.</p>
+</footer>
+
+</body>
+</html>

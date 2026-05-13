@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="plp-container">
+    
+    <!-- Sidebar Filters -->
+    <aside class="sidebar">
+        <h2 style="margin-bottom: 20px; font-size: 18px;">Filter Eyewear</h2>
+        
+        <div class="filter-section">
+            <div class="filter-title">Frame Shape</div>
+            <ul class="filter-list">
+                {% for shape_key, shape_val in shapes %}
+                    {% if shape_key != 'none' %}
+                    <li><a href="?shape={{ shape_key }}">{{ shape_val }}</a></li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+        
+        <div class="filter-section">
+            <div class="filter-title">Frame Size</div>
+            <ul class="filter-list">
+                {% for size_key, size_val in sizes %}
+                    {% if size_key != 'none' %}
+                    <li><a href="?size={{ size_key }}">{{ size_val }}</a></li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-title">Brand</div>
+            <ul class="filter-list">
+                <li><a href="?brand=Vincent Chase">Vincent Chase</a></li>
+                <li><a href="?brand=Lenskart">Lenskart Air/Blu</a></li>
+                <li><a href="?brand=John Jacobs">John Jacobs</a></li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Product Grid -->
+    <div class="product-grid">
+        {% for product in products %}
+        <div class="product-card">
+            {% if product.discount_percentage > 0 %}
+                <span class="product-badge">{{ product.discount_percentage }}% OFF</span>
+            {% endif %}
+            
+            <form action="{% url 'toggle_wishlist' product.id %}" method="POST" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="wishlist-btn" title="Add to Wishlist">
+                    {% if product in user_wishlist %}❤️{% else %}🤍{% endif %}
+                </button>
+            </form>
+
+            <a href="{% url 'product_detail' product.id %}">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+                {% else %}
+                    <!-- Placeholder using an image from web -->
+                    <img src="https://static5.lenskart.com/media/catalog/product/pro/1/thumbnail/628x301/9df78eab33525d08d6e5fb8d27136e95//v/i/vincent-chase-vc-e13028-c2-eyeglasses_G_7200.jpg" alt="Eyewear" class="product-image">
+                {% endif %}
+            </a>
+            
+            <a href="{% url 'product_detail' product.id %}" class="product-title">{{ product.name }}</a>
+            <div class="product-desc">{{ product.description }} | {{ product.frame_color|title }}</div>
+            
+            <div class="product-price-row">
+                <div class="price">
+                    ₹{{ product.discounted_price|floatformat:0 }}
+                    {% if product.discount_percentage > 0 %}
+                        <span class="price-strike">₹{{ product.price|floatformat:0 }}</span>
+                    {% endif %}
+                </div>
+                <a href="{% url 'product_detail' product.id %}" class="btn-outline">View Details</a>
+            </div>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 50px;">
+            <h3>No products found for this filter.</h3>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}
