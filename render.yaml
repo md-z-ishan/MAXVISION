@@ -1,0 +1,36 @@
+services:
+  # 1. Django Web Service (Backend)
+  - type: web
+    name: maxvision-backend
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn ecommerce2.wsgi"
+    plan: free
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.6
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: maxvision-db
+          property: connectionString
+
+  # 2. Vite React App (Frontend)
+  - type: web
+    name: maxvision-frontend
+    runtime: static
+    rootDir: "frontend"
+    buildCommand: "npm install && npm run build"
+    publishDir: "dist"
+    plan: free
+    envVars:
+      - key: VITE_API_URL
+        value: "https://YOUR_BACKEND_RENDER_URL/api/" # Set this to backend URL once deployed
+
+# 3. Managed PostgreSQL Database
+databases:
+  - name: maxvision-db
+    plan: free
