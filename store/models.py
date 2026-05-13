@@ -42,6 +42,7 @@ class Product(models.Model):
     material = models.CharField(max_length=50, blank=True, null=True)
 
     image = models.ImageField(upload_to='products/', null=True, blank=True)
+    image_url = models.URLField(max_length=500, null=True, blank=True)
     
     @property
     def discounted_price(self):

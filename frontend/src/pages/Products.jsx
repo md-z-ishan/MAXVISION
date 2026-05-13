@@ -126,11 +126,12 @@ const Products = () => {
                     </span>
                   )}
                   
-                  <Link to={`/product/${product.id}`} className="mb-4 block">
+                  <Link to={`/product/${product.id}`} className="mb-4 block overflow-hidden rounded-lg bg-gray-50">
                     <img 
-                      src={product.image || "https://static5.lenskart.com/media/catalog/product/pro/1/thumbnail/628x301/9df78eab33525d08d6e5fb8d27136e95//v/i/vincent-chase-vc-e13028-c2-eyeglasses_G_7200.jpg"} 
+                      src={product.image_url || product.image || "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=500&h=400&fit=crop&auto=format"} 
                       alt={product.name} 
-                      className="w-full h-48 object-contain mix-blend-multiply"
+                      loading="lazy"
+                      className="w-full h-48 object-contain mix-blend-multiply hover:scale-105 transition-transform duration-300"
                     />
                   </Link>
 
