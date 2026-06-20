@@ -136,7 +136,9 @@ class Order(models.Model):
     mobile = models.CharField(max_length=15)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    prescription_file = models.FileField(upload_to='prescriptions/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"Order #{self.id} - {self.user.username}"

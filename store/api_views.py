@@ -1,6 +1,7 @@
 from rest_framework import viewsets, generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.contrib.auth.models import User
 from .models import Product, Cart, Wishlist, Order, OrderItem
 from .serializers import (
@@ -106,10 +107,12 @@ class ToggleWishlistAPI(APIView):
 # -- ORDER / CHECKOUT VIEWS --
 class CheckoutAPI(APIView):
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def post(self, request):
         address = request.data.get('address')
         mobile = request.data.get('mobile')
+        prescription_file = request.FILES.get('prescription_file')
         cart_items = Cart.objects.filter(user=request.user)
 
         if not cart_items.exists():
@@ -122,7 +125,8 @@ class CheckoutAPI(APIView):
             address=address,
             mobile=mobile,
             total_amount=total,
-            status="Pending"
+            status="Pending",
+            prescription_file=prescription_file
         )
 
         for item in cart_items:

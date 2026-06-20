@@ -8,6 +8,8 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Orders from './pages/Orders';
+import Wishlist from './pages/Wishlist';
 import { useDispatch } from 'react-redux';
 import axios from './api/axios';
 import { setUser } from './redux/authSlice';
@@ -40,8 +42,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         {/* Fallbacks */}
-        <Route path="/orders" element={<div className="text-center py-20 font-bold text-2xl text-primary">Orders Page Coming Soon</div>} />
-        <Route path="/wishlist" element={<div className="text-center py-20 font-bold text-2xl text-primary">Wishlist Page Coming Soon</div>} />
+        <Route path="/orders" element={<Orders />} />
+        <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/try-on" element={<div className="text-center py-20 font-bold text-2xl text-primary">Virtual Try On feature coming soon!</div>} />
       </Routes>
     </MainLayout>

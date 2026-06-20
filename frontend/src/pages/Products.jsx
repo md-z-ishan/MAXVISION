@@ -1,11 +1,51 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import axios from '../api/axios';
 import { motion } from 'framer-motion';
+import { FaHeart, FaRegHeart } from 'react-icons/fa';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { isAuthenticated } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+  const [wishlistedIds, setWishlistedIds] = useState([]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchWishlist();
+    } else {
+      setWishlistedIds([]);
+    }
+  }, [isAuthenticated]);
+
+  const fetchWishlist = async () => {
+    try {
+      const response = await axios.get('wishlist/');
+      const ids = response.data.map(item => item.product.id);
+      setWishlistedIds(ids);
+    } catch (error) {
+      console.error("Failed to fetch wishlist", error);
+    }
+  };
+
+  const toggleWishlist = async (productId) => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    try {
+      const response = await axios.post(`wishlist/toggle/${productId}/`);
+      if (response.data.status === 'added') {
+        setWishlistedIds([...wishlistedIds, productId]);
+      } else {
+        setWishlistedIds(wishlistedIds.filter(id => id !== productId));
+      }
+    } catch (error) {
+      console.error("Failed to toggle wishlist", error);
+    }
+  };
   
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -125,6 +165,22 @@ const Products = () => {
                       {product.discount_percentage}% OFF
                     </span>
                   )}
+
+                  {/* Wishlist Toggle Heart Button */}
+                  <button 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleWishlist(product.id);
+                    }}
+                    className="absolute top-4 right-4 z-10 p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm hover:scale-110 transition-transform text-red-500 hover:text-red-600 focus:outline-none"
+                  >
+                    {wishlistedIds.includes(product.id) ? (
+                      <FaHeart size={16} />
+                    ) : (
+                      <FaRegHeart size={16} className="text-gray-400 hover:text-red-500" />
+                    )}
+                  </button>
                   
                   <Link to={`/product/${product.id}`} className="mb-4 block overflow-hidden rounded-lg bg-gray-50">
                     <img 

@@ -7,6 +7,7 @@ const Checkout = () => {
   const [items, setItems] = useState([]);
   const [address, setAddress] = useState('');
   const [mobile, setMobile] = useState('');
+  const [prescriptionFile, setPrescriptionFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -29,8 +30,20 @@ const Checkout = () => {
   const handleCheckout = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    const formData = new FormData();
+    formData.append('address', address);
+    formData.append('mobile', mobile);
+    if (prescriptionFile) {
+      formData.append('prescription_file', prescriptionFile);
+    }
+
     try {
-      await axios.post('checkout/', { address, mobile });
+      await axios.post('checkout/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       navigate('/orders', { state: { success: true } });
     } catch (error) {
       console.error(error);
@@ -67,6 +80,15 @@ const Checkout = () => {
               value={mobile}
               onChange={(e) => setMobile(e.target.value)}
               placeholder="10-digit mobile number"
+              className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-secondary transition-all"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-2">Upload Prescription (Optional - PDF or Image)</label>
+            <input 
+              type="file" 
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={(e) => setPrescriptionFile(e.target.files[0])}
               className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-secondary transition-all"
             />
           </div>

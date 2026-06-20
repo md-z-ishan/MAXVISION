@@ -94,6 +94,12 @@ const Navbar = () => {
                       <div className="absolute right-0 top-full mt-3 w-44 bg-white border border-gray-200 shadow-lg rounded-lg z-50 overflow-hidden">
                         <div className="p-3 border-b border-gray-100 text-sm font-bold text-primary bg-gray-50">Hi, {user?.username || 'User'}</div>
                         <button
+                          onClick={() => { navigate('/orders'); setShowDropdown(false); }}
+                          className="w-full text-left px-4 py-2 text-sm font-bold text-primary hover:bg-gray-50 transition-colors border-b border-gray-100"
+                        >
+                          My Orders
+                        </button>
+                        <button
                           onClick={handleLogout}
                           className="w-full text-left px-4 py-2 text-sm font-bold text-red-600 hover:bg-gray-50 transition-colors"
                         >

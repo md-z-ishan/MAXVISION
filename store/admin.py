@@ -9,7 +9,15 @@ admin.site.register(Product, ProductAdmin)
 admin.site.register(Prescription)
 admin.site.register(UserProfile)
 admin.site.register(Cart)
-admin.site.register(Wishlist)
-admin.site.register(Order)
+class WishlistAdmin(admin.ModelAdmin):
+    list_display = ('user', 'product')
+    list_filter = ('user', 'product')
+
+admin.site.register(Wishlist, WishlistAdmin)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'total_amount', 'status', 'prescription_file', 'created_at')
+    list_filter = ('status', 'created_at')
+
+admin.site.register(Order, OrderAdmin)
 admin.site.register(OrderItem)
 admin.site.register(Invoice)
