@@ -1,570 +1,1029 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  FaCamera, FaDownload, FaStopCircle, FaRedo,
-  FaSearchPlus, FaSearchMinus, FaArrowUp, FaArrowDown,
-  FaCheck, FaTimes
+  FaCamera, FaDownload, FaRedo, FaUpload, FaCheck,
+  FaTimes, FaEye, FaSlidersH, FaMagic, FaArrowsAlt
 } from 'react-icons/fa';
 import { MdFlipCameraAndroid } from 'react-icons/md';
 import { BsCameraVideoFill, BsCameraVideoOffFill } from 'react-icons/bs';
 
-// ─── Glasses Collection ───────────────────────────────────────────────
-const frames = [
+// ── Built-in Preset Frames ──
+const INITIAL_FRAMES = [
   {
-    id: 1, name: 'Classic Black', brand: 'Ray-Ban Style',
-    category: 'eyeglasses', type: 'rectangle',
-    frameColor: '#111111', lensColor: 'rgba(20,20,20,0.18)',
+    id: 'wayfarer-black',
+    name: 'Wayfarer Classic',
+    brand: 'Ray-Ban Style',
+    category: 'eyeglasses',
+    type: 'wayfarer',
+    frameColor: '#121212',
+    lensColor: 'rgba(20, 25, 30, 0.22)',
+    aspectRatio: 0.38,
     thumb: 'https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=320&h=200&fit=crop&auto=format',
   },
   {
-    id: 2, name: 'Gold Aviator', brand: 'Pilot Classic',
-    category: 'sunglasses', type: 'aviator',
-    frameColor: '#C9A42C', lensColor: 'rgba(0,80,80,0.42)',
+    id: 'aviator-gold',
+    name: 'Gold Pilot Aviator',
+    brand: 'MAXVISION Signature',
+    category: 'sunglasses',
+    type: 'aviator',
+    frameColor: '#D4AF37',
+    lensColor: 'rgba(10, 60, 60, 0.55)',
+    aspectRatio: 0.42,
     thumb: 'https://images.unsplash.com/photo-1508296695146-257a814070b4?w=320&h=200&fit=crop&auto=format',
   },
   {
-    id: 3, name: 'Brown Round', brand: 'Vintage Circle',
-    category: 'eyeglasses', type: 'round',
-    frameColor: '#6B3A2A', lensColor: 'rgba(100,60,30,0.14)',
+    id: 'round-vintage',
+    name: 'Vintage Round',
+    brand: 'John Jacobs Style',
+    category: 'eyeglasses',
+    type: 'round',
+    frameColor: '#5C3826',
+    lensColor: 'rgba(90, 50, 20, 0.16)',
+    aspectRatio: 0.40,
     thumb: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=320&h=200&fit=crop&auto=format',
   },
   {
-    id: 4, name: 'Pink Cat Eye', brand: 'Fashion Forward',
-    category: 'eyeglasses', type: 'catEye',
-    frameColor: '#D4688A', lensColor: 'rgba(212,104,138,0.14)',
+    id: 'cateye-pink',
+    name: 'Chic Cat-Eye',
+    brand: 'Vincent Chase Glam',
+    category: 'eyeglasses',
+    type: 'catEye',
+    frameColor: '#D15275',
+    lensColor: 'rgba(210, 80, 120, 0.18)',
+    aspectRatio: 0.38,
     thumb: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=320&h=200&fit=crop&auto=format',
   },
   {
-    id: 5, name: 'Navy Wayfarer', brand: 'Street Style',
-    category: 'sunglasses', type: 'wayfarer',
-    frameColor: '#1a237e', lensColor: 'rgba(10,20,80,0.52)',
+    id: 'clubmaster-black',
+    name: 'Clubmaster Browline',
+    brand: 'Retro Iconic',
+    category: 'sunglasses',
+    type: 'clubmaster',
+    frameColor: '#1A1A1A',
+    lensColor: 'rgba(20, 45, 30, 0.58)',
+    aspectRatio: 0.40,
     thumb: 'https://images.unsplash.com/photo-1473496169904-658ba7574b0d?w=320&h=200&fit=crop&auto=format',
   },
   {
-    id: 6, name: 'Silver Geometric', brand: 'Modern Edge',
-    category: 'eyeglasses', type: 'geometric',
-    frameColor: '#757575', lensColor: 'rgba(100,100,120,0.12)',
+    id: 'geometric-silver',
+    name: 'Hexagonal Geometric',
+    brand: 'Titan Edge',
+    category: 'eyeglasses',
+    type: 'geometric',
+    frameColor: '#8E9AA0',
+    lensColor: 'rgba(100, 120, 140, 0.14)',
+    aspectRatio: 0.38,
     thumb: 'https://images.unsplash.com/photo-1485053329638-4e9f0ba3de14?w=320&h=200&fit=crop&auto=format',
   },
 ];
 
-// ─── SVG Glasses Overlays ─────────────────────────────────────────────
-const GlassesSVG = ({ frame }) => {
+// Helper to draw realistic glasses presets onto canvas
+const drawPresetGlasses = (ctx, frame, width, height) => {
   const { frameColor: fc, lensColor: lc, type } = frame;
-  const sw = 7; // stroke-width
+  const sw = Math.max(3, width * 0.022); // dynamic stroke weight
 
-  if (type === 'rectangle') return (
-    <svg viewBox="0 0 400 140" width="100%" style={{ display: 'block' }}>
-      {/* temples */}
-      <line x1="0" y1="58" x2="22" y2="58" stroke={fc} strokeWidth={sw} strokeLinecap="round" />
-      <line x1="378" y1="58" x2="400" y2="58" stroke={fc} strokeWidth={sw} strokeLinecap="round" />
-      {/* left lens */}
-      <rect x="22" y="20" width="150" height="90" rx="12" ry="12" fill={lc} stroke={fc} strokeWidth={sw} />
-      {/* bridge */}
-      <path d="M172 55 Q200 42 228 55" fill="none" stroke={fc} strokeWidth={sw - 1} />
-      {/* right lens */}
-      <rect x="228" y="20" width="150" height="90" rx="12" ry="12" fill={lc} stroke={fc} strokeWidth={sw} />
-      {/* nose pads */}
-      <ellipse cx="175" cy="62" rx="5" ry="7" fill={fc} opacity="0.5" />
-      <ellipse cx="225" cy="62" rx="5" ry="7" fill={fc} opacity="0.5" />
-    </svg>
-  );
+  ctx.save();
+  ctx.strokeStyle = fc;
+  ctx.fillStyle = lc;
+  ctx.lineWidth = sw;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
 
-  if (type === 'aviator') return (
-    <svg viewBox="0 0 400 155" width="100%" style={{ display: 'block' }}>
-      <line x1="0" y1="52" x2="22" y2="52" stroke={fc} strokeWidth={sw} strokeLinecap="round" />
-      <line x1="378" y1="52" x2="400" y2="52" stroke={fc} strokeWidth={sw} strokeLinecap="round" />
-      {/* double bridge */}
-      <path d="M165 44 Q200 32 235 44" fill="none" stroke={fc} strokeWidth={sw - 2} />
-      <path d="M165 56 Q200 44 235 56" fill="none" stroke={fc} strokeWidth={sw - 2} />
-      {/* left lens (teardrop) */}
-      <path d="M22 25 Q22 10 97 10 Q165 10 165 55 Q165 115 97 125 Q22 115 22 65 Z"
-        fill={lc} stroke={fc} strokeWidth={sw} />
-      {/* right lens (teardrop) */}
-      <path d="M378 25 Q378 10 303 10 Q235 10 235 55 Q235 115 303 125 Q378 115 378 65 Z"
-        fill={lc} stroke={fc} strokeWidth={sw} />
-      <ellipse cx="168" cy="52" rx="5" ry="6" fill={fc} opacity="0.6" />
-      <ellipse cx="232" cy="52" rx="5" ry="6" fill={fc} opacity="0.6" />
-    </svg>
-  );
+  const halfW = width / 2;
+  const halfH = height / 2;
 
-  if (type === 'round') return (
-    <svg viewBox="0 0 400 140" width="100%" style={{ display: 'block' }}>
-      <line x1="0" y1="60" x2="30" y2="60" stroke={fc} strokeWidth={sw} strokeLinecap="round" />
-      <line x1="370" y1="60" x2="400" y2="60" stroke={fc} strokeWidth={sw} strokeLinecap="round" />
-      {/* left circle */}
-      <circle cx="105" cy="62" r="75" fill={lc} stroke={fc} strokeWidth={sw} />
-      {/* bridge arc */}
-      <path d="M180 52 Q200 40 220 52" fill="none" stroke={fc} strokeWidth={sw - 1} />
-      {/* right circle */}
-      <circle cx="295" cy="62" r="75" fill={lc} stroke={fc} strokeWidth={sw} />
-      <ellipse cx="183" cy="58" rx="5" ry="7" fill={fc} opacity="0.5" />
-      <ellipse cx="217" cy="58" rx="5" ry="7" fill={fc} opacity="0.5" />
-    </svg>
-  );
+  if (type === 'aviator') {
+    // Teardrop lenses with double bridge
+    const lensW = width * 0.42;
+    const lensH = height * 0.88;
+    const bridgeW = width * 0.12;
 
-  if (type === 'catEye') return (
-    <svg viewBox="0 0 400 140" width="100%" style={{ display: 'block' }}>
-      <line x1="0" y1="55" x2="20" y2="55" stroke={fc} strokeWidth={sw} strokeLinecap="round" />
-      <line x1="380" y1="30" x2="400" y2="22" stroke={fc} strokeWidth={sw} strokeLinecap="round" />
-      {/* left cat-eye lens */}
-      <path d="M20 95 Q20 20 100 15 Q155 12 170 50 Q175 70 160 100 Q100 115 20 95 Z"
-        fill={lc} stroke={fc} strokeWidth={sw} />
-      {/* bridge */}
-      <path d="M170 52 Q200 42 230 52" fill="none" stroke={fc} strokeWidth={sw - 1} />
-      {/* right cat-eye lens */}
-      <path d="M380 25 Q360 10 300 15 Q245 12 230 50 Q225 70 240 100 Q300 115 380 95 Z"
-        fill={lc} stroke={fc} strokeWidth={sw} />
-      <ellipse cx="173" cy="58" rx="5" ry="7" fill={fc} opacity="0.5" />
-      <ellipse cx="227" cy="58" rx="5" ry="7" fill={fc} opacity="0.5" />
-    </svg>
-  );
+    // Double top bridge
+    ctx.beginPath();
+    ctx.moveTo(-bridgeW / 2, -halfH * 0.45);
+    ctx.quadraticCurveTo(0, -halfH * 0.65, bridgeW / 2, -halfH * 0.45);
+    ctx.stroke();
 
-  if (type === 'wayfarer') return (
-    <svg viewBox="0 0 400 140" width="100%" style={{ display: 'block' }}>
-      <line x1="0" y1="48" x2="18" y2="48" stroke={fc} strokeWidth={sw} strokeLinecap="round" />
-      <line x1="382" y1="48" x2="400" y2="48" stroke={fc} strokeWidth={sw} strokeLinecap="round" />
-      {/* left wayfarer (trapezoidal) */}
-      <path d="M18 15 L168 15 L175 100 L12 100 Z" fill={lc} stroke={fc} strokeWidth={sw} strokeLinejoin="round" />
-      {/* bridge */}
-      <path d="M168 44 Q200 34 232 44" fill="none" stroke={fc} strokeWidth={sw} />
-      {/* right wayfarer */}
-      <path d="M382 15 L232 15 L225 100 L388 100 Z" fill={lc} stroke={fc} strokeWidth={sw} strokeLinejoin="round" />
-      {/* thick top bar */}
-      <line x1="18" y1="15" x2="168" y2="15" stroke={fc} strokeWidth={sw + 5} strokeLinecap="round" />
-      <line x1="232" y1="15" x2="382" y2="15" stroke={fc} strokeWidth={sw + 5} strokeLinecap="round" />
-      <ellipse cx="172" cy="50" rx="5" ry="7" fill={fc} opacity="0.5" />
-      <ellipse cx="228" cy="50" rx="5" ry="7" fill={fc} opacity="0.5" />
-    </svg>
-  );
+    ctx.beginPath();
+    ctx.moveTo(-bridgeW / 2, -halfH * 0.15);
+    ctx.quadraticCurveTo(0, -halfH * 0.35, bridgeW / 2, -halfH * 0.15);
+    ctx.stroke();
 
-  // geometric / hexagon
-  return (
-    <svg viewBox="0 0 400 140" width="100%" style={{ display: 'block' }}>
-      <line x1="0" y1="58" x2="22" y2="58" stroke={fc} strokeWidth={sw} strokeLinecap="round" />
-      <line x1="378" y1="58" x2="400" y2="58" stroke={fc} strokeWidth={sw} strokeLinecap="round" />
-      {/* left hexagon */}
-      <polygon points="52,15 142,15 170,58 142,100 52,100 22,58"
-        fill={lc} stroke={fc} strokeWidth={sw} />
-      {/* bridge */}
-      <path d="M170 50 Q200 40 230 50" fill="none" stroke={fc} strokeWidth={sw - 1} />
-      {/* right hexagon */}
-      <polygon points="348,15 258,15 230,58 258,100 348,100 378,58"
-        fill={lc} stroke={fc} strokeWidth={sw} />
-      <ellipse cx="173" cy="58" rx="5" ry="7" fill={fc} opacity="0.5" />
-      <ellipse cx="227" cy="58" rx="5" ry="7" fill={fc} opacity="0.5" />
-    </svg>
-  );
+    // Left lens
+    ctx.beginPath();
+    const lcx = -bridgeW / 2 - lensW / 2;
+    ctx.ellipse(lcx, 0, lensW / 2, lensH / 2, 0.08, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Right lens
+    ctx.beginPath();
+    const rcx = bridgeW / 2 + lensW / 2;
+    ctx.ellipse(rcx, 0, lensW / 2, lensH / 2, -0.08, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Temples
+    ctx.beginPath();
+    ctx.moveTo(-halfW, -halfH * 0.2);
+    ctx.lineTo(lcx - lensW / 2, -halfH * 0.2);
+    ctx.moveTo(halfW, -halfH * 0.2);
+    ctx.lineTo(rcx + lensW / 2, -halfH * 0.2);
+    ctx.stroke();
+  } else if (type === 'round') {
+    // Perfect round glasses
+    const radius = Math.min(width * 0.21, height * 0.44);
+    const bridgeW = width * 0.14;
+
+    // Bridge
+    ctx.beginPath();
+    ctx.arc(0, -radius * 0.1, bridgeW * 0.65, Math.PI * 0.85, Math.PI * 0.15, true);
+    ctx.stroke();
+
+    // Left Circle
+    ctx.beginPath();
+    const lcx = -bridgeW / 2 - radius;
+    ctx.arc(lcx, 0, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Right Circle
+    ctx.beginPath();
+    const rcx = bridgeW / 2 + radius;
+    ctx.arc(rcx, 0, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Temples
+    ctx.beginPath();
+    ctx.moveTo(-halfW, 0);
+    ctx.lineTo(lcx - radius, 0);
+    ctx.moveTo(halfW, 0);
+    ctx.lineTo(rcx + radius, 0);
+    ctx.stroke();
+  } else if (type === 'catEye') {
+    // Cat-eye swept wings
+    const lensW = width * 0.43;
+    const lensH = height * 0.85;
+    const bridgeW = width * 0.12;
+
+    // Bridge
+    ctx.beginPath();
+    ctx.moveTo(-bridgeW / 2, -halfH * 0.1);
+    ctx.quadraticCurveTo(0, -halfH * 0.35, bridgeW / 2, -halfH * 0.1);
+    ctx.stroke();
+
+    // Left Cat-Eye
+    ctx.beginPath();
+    const lcx = -bridgeW / 2 - lensW;
+    ctx.moveTo(lcx + lensW, -halfH * 0.1);
+    ctx.quadraticCurveTo(lcx + lensW * 0.5, halfH * 0.9, lcx, halfH * 0.3);
+    ctx.quadraticCurveTo(lcx - 12, -halfH * 0.9, lcx + lensW * 0.3, -halfH * 0.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Right Cat-Eye
+    ctx.beginPath();
+    const rcx = bridgeW / 2;
+    ctx.moveTo(rcx, -halfH * 0.1);
+    ctx.quadraticCurveTo(rcx + lensW * 0.5, halfH * 0.9, rcx + lensW, halfH * 0.3);
+    ctx.quadraticCurveTo(rcx + lensW + 12, -halfH * 0.9, rcx + lensW * 0.7, -halfH * 0.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  } else if (type === 'clubmaster') {
+    // Browline thick top, thin wire bottom
+    const lensW = width * 0.42;
+    const lensH = height * 0.82;
+    const bridgeW = width * 0.13;
+
+    // Bridge
+    ctx.beginPath();
+    ctx.moveTo(-bridgeW / 2, -halfH * 0.15);
+    ctx.quadraticCurveTo(0, -halfH * 0.4, bridgeW / 2, -halfH * 0.15);
+    ctx.stroke();
+
+    // Left lens wire bottom
+    const lcx = -bridgeW / 2 - lensW / 2;
+    ctx.beginPath();
+    ctx.roundRect(lcx - lensW / 2, -lensH / 2, lensW, lensH, [4, 4, 18, 18]);
+    ctx.fill();
+    ctx.stroke();
+
+    // Left thick browline
+    ctx.save();
+    ctx.lineWidth = sw * 2.2;
+    ctx.beginPath();
+    ctx.moveTo(-halfW + 4, -halfH * 0.35);
+    ctx.quadraticCurveTo(lcx, -halfH * 0.65, -bridgeW / 2, -halfH * 0.35);
+    ctx.stroke();
+    ctx.restore();
+
+    // Right lens wire bottom
+    const rcx = bridgeW / 2 + lensW / 2;
+    ctx.beginPath();
+    ctx.roundRect(rcx - lensW / 2, -lensH / 2, lensW, lensH, [4, 4, 18, 18]);
+    ctx.fill();
+    ctx.stroke();
+
+    // Right thick browline
+    ctx.save();
+    ctx.lineWidth = sw * 2.2;
+    ctx.beginPath();
+    ctx.moveTo(bridgeW / 2, -halfH * 0.35);
+    ctx.quadraticCurveTo(rcx, -halfH * 0.65, halfW - 4, -halfH * 0.35);
+    ctx.stroke();
+    ctx.restore();
+  } else if (type === 'geometric') {
+    // Hexagonal geometry
+    const r = Math.min(width * 0.22, height * 0.46);
+    const bridgeW = width * 0.12;
+
+    // Bridge
+    ctx.beginPath();
+    ctx.moveTo(-bridgeW / 2, 0);
+    ctx.quadraticCurveTo(0, -halfH * 0.25, bridgeW / 2, 0);
+    ctx.stroke();
+
+    const drawHex = (cx) => {
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI / 3) * i + Math.PI / 6;
+        const x = cx + r * Math.cos(a);
+        const y = r * Math.sin(a);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    };
+
+    drawHex(-bridgeW / 2 - r);
+    drawHex(bridgeW / 2 + r);
+
+    // Temples
+    ctx.beginPath();
+    ctx.moveTo(-halfW, 0);
+    ctx.lineTo(-bridgeW / 2 - r * 1.86, 0);
+    ctx.moveTo(halfW, 0);
+    ctx.lineTo(bridgeW / 2 + r * 1.86, 0);
+    ctx.stroke();
+  } else {
+    // Classic Wayfarer / Rectangle
+    const lensW = width * 0.42;
+    const lensH = height * 0.85;
+    const bridgeW = width * 0.14;
+
+    // Bridge
+    ctx.beginPath();
+    ctx.moveTo(-bridgeW / 2, -halfH * 0.1);
+    ctx.quadraticCurveTo(0, -halfH * 0.35, bridgeW / 2, -halfH * 0.1);
+    ctx.stroke();
+
+    // Left lens
+    const lcx = -bridgeW / 2 - lensW / 2;
+    ctx.beginPath();
+    ctx.roundRect(lcx - lensW / 2, -lensH / 2, lensW, lensH, [10, 10, 16, 16]);
+    ctx.fill();
+    ctx.stroke();
+
+    // Right lens
+    const rcx = bridgeW / 2 + lensW / 2;
+    ctx.beginPath();
+    ctx.roundRect(rcx - lensW / 2, -lensH / 2, lensW, lensH, [10, 10, 16, 16]);
+    ctx.fill();
+    ctx.stroke();
+
+    // Temples
+    ctx.beginPath();
+    ctx.moveTo(-halfW, -halfH * 0.15);
+    ctx.lineTo(lcx - lensW / 2, -halfH * 0.15);
+    ctx.moveTo(halfW, -halfH * 0.15);
+    ctx.lineTo(rcx + lensW / 2, -halfH * 0.15);
+    ctx.stroke();
+  }
+
+  // Realistic lens glare reflection
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+  ctx.lineWidth = Math.max(2, sw * 0.6);
+  ctx.beginPath();
+  ctx.moveTo(-width * 0.32, -height * 0.25);
+  ctx.lineTo(-width * 0.18, height * 0.2);
+  ctx.moveTo(width * 0.18, -height * 0.25);
+  ctx.lineTo(width * 0.32, height * 0.2);
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.restore();
 };
 
-// ─── Main Component ───────────────────────────────────────────────────
 const VirtualTryOn = () => {
-  const [cameraActive, setCameraActive] = useState(false);
-  const [selectedFrame, setSelectedFrame] = useState(null);
-  const [capturedImage, setCapturedImage] = useState(null);
-  const [glassesScale, setGlassesScale] = useState(72);   // % of container width
-  const [glassesY, setGlassesY] = useState(32);           // % from top of container
+  // State
+  const [framesList, setFramesList] = useState(INITIAL_FRAMES);
+  const [selectedFrame, setSelectedFrame] = useState(INITIAL_FRAMES[0]);
   const [filterCat, setFilterCat] = useState('all');
-  const [cameraError, setCameraError] = useState('');
+  const [cameraActive, setCameraActive] = useState(false);
   const [facingMode, setFacingMode] = useState('user');
+  const [cameraError, setCameraError] = useState('');
+  const [aiStatus, setAiStatus] = useState('Standby'); // Standby, Loading AI, Tracking, No Face
+  const [autoFit, setAutoFit] = useState(true);
+  const [scaleOffset, setScaleOffset] = useState(1.0); // manual scale multiplier
+  const [yOffset, setYOffset] = useState(0); // manual Y shift in px
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [uploadedImageObj, setUploadedImageObj] = useState(null);
 
+  // Refs
   const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const streamRef = useRef(null);
-  const overlayRef = useRef(null);
+  const faceMeshRef = useRef(null);
+  const animFrameId = useRef(null);
+  const fileInputRef = useRef(null);
 
-  const startCamera = useCallback(async () => {
+  // Smoothing tracker state for face
+  const smoothedFaceRef = useRef({
+    x: 0,
+    y: 0,
+    width: 200,
+    height: 80,
+    angle: 0,
+    detected: false,
+  });
+
+  // ── Load MediaPipe FaceMesh dynamically if not yet ready ──
+  const initFaceMesh = useCallback(() => {
+    return new Promise((resolve, reject) => {
+      if (window.FaceMesh) {
+        try {
+          const fm = new window.FaceMesh({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+          });
+          fm.setOptions({
+            maxNumFaces: 1,
+            refineLandmarks: true,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+          });
+          fm.onResults(onFaceResults);
+          faceMeshRef.current = fm;
+          resolve(fm);
+        } catch (err) {
+          console.error("FaceMesh init error:", err);
+          reject(err);
+        }
+      } else {
+        // Wait or retry
+        let attempts = 0;
+        const interval = setInterval(() => {
+          attempts++;
+          if (window.FaceMesh) {
+            clearInterval(interval);
+            try {
+              const fm = new window.FaceMesh({
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+              });
+              fm.setOptions({
+                maxNumFaces: 1,
+                refineLandmarks: true,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+              });
+              fm.onResults(onFaceResults);
+              faceMeshRef.current = fm;
+              resolve(fm);
+            } catch (err) {
+              reject(err);
+            }
+          } else if (attempts > 30) {
+            clearInterval(interval);
+            reject(new Error("FaceMesh library script timeout"));
+          }
+        }, 200);
+      }
+    });
+  }, []);
+
+  // ── Process FaceMesh Landmarks ──
+  const onFaceResults = useCallback((results) => {
+    if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
+      smoothedFaceRef.current.detected = false;
+      setAiStatus('Searching for face...');
+      return;
+    }
+
+    const landmarks = results.multiFaceLandmarks[0];
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const w = canvas.width;
+    const h = canvas.height;
+
+    // Landmark 33: left eye outer corner, 263: right eye outer corner
+    const leftEye = landmarks[33];
+    const rightEye = landmarks[263];
+
+    // Landmark 234: left temple, 454: right temple
+    const leftTemple = landmarks[234] || leftEye;
+    const rightTemple = landmarks[454] || rightEye;
+
+    // Landmark 168: bridge of nose between eyes
+    const bridge = landmarks[168] || landmarks[6] || {
+      x: (leftEye.x + rightEye.x) / 2,
+      y: (leftEye.y + rightEye.y) / 2,
+    };
+
+    // Calculate position in canvas pixels
+    // Note: Video is mirrored (scaleX(-1)), so landmark.x mirrors as: (1 - landmark.x) * w
+    const targetX = (1 - bridge.x) * w;
+    const targetY = bridge.y * h;
+
+    // Calculate rotation angle (roll)
+    // Mirrored dx calculation:
+    const dx = (1 - rightEye.x) * w - (1 - leftEye.x) * w;
+    const dy = rightEye.y * h - leftEye.y * h;
+    const targetAngle = Math.atan2(dy, dx);
+
+    // Calculate glasses width based on temple distance
+    const templeDist = Math.hypot(
+      ((1 - rightTemple.x) - (1 - leftTemple.x)) * w,
+      (rightTemple.y - leftTemple.y) * h
+    );
+
+    // Natural frame width is ~1.15 to 1.25x the temple span
+    const targetWidth = templeDist * 1.18;
+    const targetHeight = targetWidth * (selectedFrame?.aspectRatio || 0.4);
+
+    // Exponential smoothing (Low-Pass Filter) to remove jitter
+    const prev = smoothedFaceRef.current;
+    const alpha = 0.35; // responsiveness
+
+    prev.x = prev.detected ? prev.x * (1 - alpha) + targetX * alpha : targetX;
+    prev.y = prev.detected ? prev.y * (1 - alpha) + targetY * alpha : targetY;
+    prev.width = prev.detected ? prev.width * (1 - alpha) + targetWidth * alpha : targetWidth;
+    prev.height = prev.detected ? prev.height * (1 - alpha) + targetHeight * alpha : targetHeight;
+    prev.angle = prev.detected ? prev.angle * (1 - alpha) + targetAngle * alpha : targetAngle;
+    prev.detected = true;
+
+    setAiStatus('Tracking Face (Auto-Fit AI)');
+  }, [selectedFrame]);
+
+  // ── Render Loop ──
+  const startRenderLoop = useCallback(() => {
+    let lastSendTime = 0;
+
+    const render = async (timestamp) => {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+
+      if (video && canvas && video.readyState >= 2) {
+        // Set canvas resolution to match video stream
+        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 480;
+        }
+
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+
+        // 1. Draw mirrored video feed
+        ctx.save();
+        ctx.translate(w, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0, w, h);
+        ctx.restore();
+
+        // 2. Send frame to MediaPipe every ~40ms (25fps tracking for performance)
+        if (faceMeshRef.current && timestamp - lastSendTime > 40) {
+          lastSendTime = timestamp;
+          try {
+            await faceMeshRef.current.send({ image: video });
+          } catch (e) {
+            // Ignored frame error during switch
+          }
+        }
+
+        // 3. Draw glasses if selected
+        const face = smoothedFaceRef.current;
+        if (selectedFrame) {
+          ctx.save();
+
+          let renderX, renderY, renderW, renderH, renderAngle;
+
+          if (autoFit && face.detected) {
+            // AI Auto-Adjust according to user's real face
+            renderX = face.x;
+            renderY = face.y + yOffset;
+            renderW = face.width * scaleOffset;
+            renderH = face.height * scaleOffset;
+            renderAngle = face.angle;
+          } else {
+            // Fallback manual center positioning if no face detected yet
+            renderX = w / 2;
+            renderY = h * 0.38 + yOffset;
+            renderW = w * 0.48 * scaleOffset;
+            renderH = renderW * (selectedFrame?.aspectRatio || 0.4);
+            renderAngle = 0;
+          }
+
+          // Apply transformation to align glasses precisely to face
+          ctx.translate(renderX, renderY);
+          ctx.rotate(renderAngle);
+
+          // Draw either custom uploaded glasses image or built-in vector frame
+          if (selectedFrame.customImage) {
+            ctx.drawImage(
+              selectedFrame.customImage,
+              -renderW / 2,
+              -renderH / 2,
+              renderW,
+              renderH
+            );
+          } else {
+            drawPresetGlasses(ctx, selectedFrame, renderW, renderH);
+          }
+
+          ctx.restore();
+        }
+      }
+
+      animFrameId.current = requestAnimationFrame(render);
+    };
+
+    animFrameId.current = requestAnimationFrame(render);
+  }, [autoFit, selectedFrame, scaleOffset, yOffset]);
+
+  // ── Camera Lifecycle ──
+  const startCamera = async () => {
     setCameraError('');
+    setAiStatus('Starting AI Face Tracking...');
     try {
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(t => t.stop());
+        streamRef.current.getTracks().forEach((t) => t.stop());
       }
+
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+        video: {
+          facingMode,
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
         audio: false,
       });
+
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.play();
       }
+
+      // Initialize FaceMesh
+      await initFaceMesh();
       setCameraActive(true);
+      startRenderLoop();
     } catch (err) {
-      setCameraError('Camera access denied. Please allow camera permission in browser settings.');
+      console.error("Camera error:", err);
+      setCameraError('Camera access required. Please allow camera permissions in your browser.');
       setCameraActive(false);
+      setAiStatus('Camera Offline');
     }
-  }, [facingMode]);
+  };
 
   const stopCamera = useCallback(() => {
+    if (animFrameId.current) {
+      cancelAnimationFrame(animFrameId.current);
+      animFrameId.current = null;
+    }
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
-    if (videoRef.current) videoRef.current.srcObject = null;
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
     setCameraActive(false);
+    setAiStatus('Standby');
+    smoothedFaceRef.current.detected = false;
   }, []);
 
-  const flipCamera = useCallback(() => {
-    setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
-  }, []);
+  const flipCamera = () => {
+    setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
+  };
 
   useEffect(() => {
-    if (cameraActive) startCamera();
+    if (cameraActive) {
+      startCamera();
+    }
   }, [facingMode]);
 
-  useEffect(() => () => stopCamera(), []);
+  useEffect(() => {
+    return () => stopCamera();
+  }, [stopCamera]);
 
-  // ── Capture Photo ──
-  const capturePhoto = useCallback(() => {
-    if (!videoRef.current || !cameraActive) return;
-    const video = videoRef.current;
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth || 1280;
-    canvas.height = video.videoHeight || 720;
-    const ctx = canvas.getContext('2d');
+  // ── Handle Custom Glasses Image Upload ──
+  const handleGlassesImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    // Mirror for selfie cam
-    if (facingMode === 'user') {
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
-    }
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    if (facingMode === 'user') {
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-    }
-
-    // Draw glasses overlay if selected
-    if (selectedFrame && overlayRef.current) {
-      const svgEl = overlayRef.current.querySelector('svg');
-      if (svgEl) {
-        const svgData = new XMLSerializer().serializeToString(svgEl);
-        const img = new Image();
-        const blob = new Blob([svgData], { type: 'image/svg+xml' });
-        const url = URL.createObjectURL(blob);
-        img.onload = () => {
-          // Calculate glasses position on canvas matching CSS overlay
-          const gw = canvas.width * (glassesScale / 100);
-          const gh = gw * 0.4; // aspect ratio of SVG
-          const gx = (canvas.width - gw) / 2;
-          const gy = canvas.height * (glassesY / 100);
-          ctx.drawImage(img, gx, gy, gw, gh);
-          URL.revokeObjectURL(url);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
-          setCapturedImage(dataUrl);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const aspect = img.height / img.width;
+        const newCustomFrame = {
+          id: `custom-${Date.now()}`,
+          name: file.name.replace(/\.[^/.]+$/, '').slice(0, 18) || 'Custom Glasses',
+          brand: 'My Upload',
+          category: 'eyeglasses',
+          type: 'custom',
+          customImage: img,
+          aspectRatio: aspect,
+          thumb: event.target.result,
         };
-        img.src = url;
-        return;
-      }
-    }
-    setCapturedImage(canvas.toDataURL('image/jpeg', 0.92));
-  }, [cameraActive, selectedFrame, glassesScale, glassesY, facingMode]);
 
-  const downloadPhoto = useCallback(() => {
+        setFramesList((prev) => [newCustomFrame, ...prev]);
+        setSelectedFrame(newCustomFrame);
+        setUploadedImageObj(img);
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // ── Photo Capture & Download ──
+  const capturePhoto = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+    setCapturedImage(dataUrl);
+  };
+
+  const downloadPhoto = () => {
     if (!capturedImage) return;
     const a = document.createElement('a');
     a.href = capturedImage;
     a.download = `maxvision-tryon-${Date.now()}.jpg`;
     a.click();
-  }, [capturedImage]);
+  };
 
-  const filteredFrames = filterCat === 'all'
-    ? frames
-    : frames.filter(f => f.category === filterCat);
+  const filteredFrames =
+    filterCat === 'all'
+      ? framesList
+      : framesList.filter((f) => f.category === filterCat);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-16">
+      {/* ── Hidden video element for raw feed ── */}
+      <video
+        ref={videoRef}
+        playsInline
+        muted
+        style={{ display: 'none' }}
+      />
 
-      {/* ── Hero ── */}
-      <div className="bg-gradient-to-r from-blue-900 to-blue-700 text-white py-10 px-4 text-center">
-        <motion.div initial={{ opacity: 0, y: -15 }} animate={{ opacity: 1, y: 0 }}>
-          <span className="inline-block bg-white/20 text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-3">
-            🕶️ Virtual Try-On
+      {/* ── Hero Banner ── */}
+      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-800 text-white py-10 px-4 text-center relative overflow-hidden">
+        <div className="max-w-4xl mx-auto relative z-10">
+          <span className="inline-flex items-center gap-2 bg-blue-500/30 text-blue-200 border border-blue-400/30 text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-3 backdrop-blur-sm">
+            <FaMagic className="text-yellow-400" /> AI-Powered Real-Time Virtual Mirror
           </span>
-          <h1 className="text-3xl md:text-4xl font-black mb-2">Try Glasses in Real Time</h1>
-          <p className="text-blue-200 max-w-lg mx-auto text-sm">
-            Select a frame, start your camera, and see how it looks — no store visit needed.
+          <h1 className="text-3xl md:text-5xl font-black mb-3 tracking-tight">
+            Virtual 3D Glasses Try-On
+          </h1>
+          <p className="text-blue-200 max-w-xl mx-auto text-sm md:text-base leading-relaxed">
+            Glasses automatically track, rotate, and scale to your face shape in real time.
+            Try available frames or upload your own image!
           </p>
-        </motion.div>
+        </div>
       </div>
 
-      {/* ── Main Layout ── */}
-      <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-6">
+      {/* ── Main Container ── */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-        {/* ══ LEFT PANEL — Frame Selection ══ */}
-        <aside className="lg:w-80 flex-shrink-0">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            {/* Category tabs */}
-            <div className="flex border-b border-gray-100">
-              {['all', 'eyeglasses', 'sunglasses'].map(cat => (
+          {/* ════ LEFT PANEL: Frame Selection (4 cols) ════ */}
+          <div className="lg:col-span-4 flex flex-col gap-4">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+
+              {/* Upload Custom Glasses Button */}
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={handleGlassesImageUpload}
+                  className="hidden"
+                />
                 <button
-                  key={cat}
-                  onClick={() => setFilterCat(cat)}
-                  className={`flex-1 py-3 text-xs font-bold uppercase tracking-wide transition-colors
-                    ${filterCat === cat
-                      ? 'text-blue-700 border-b-2 border-blue-600 bg-blue-50'
-                      : 'text-gray-500 hover:text-gray-700'}`}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full flex items-center justify-center gap-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold py-3 px-4 rounded-xl shadow-md shadow-blue-500/20 transition-all text-sm"
                 >
-                  {cat === 'all' ? 'All' : cat === 'eyeglasses' ? 'Eyeglasses' : 'Sunglasses'}
+                  <FaUpload className="text-base" /> Upload Custom Glasses Image
                 </button>
-              ))}
-            </div>
+                <p className="text-[11px] text-gray-500 text-center mt-2 font-medium">
+                  Supports transparent PNG or glasses photo
+                </p>
+              </div>
 
-            <div className="p-4">
-              <p className="text-xs text-gray-400 font-semibold mb-3">
-                {filteredFrames.length} frames available — click to select
-              </p>
-
-              {/* Frame Cards */}
-              <div className="space-y-3 max-h-[560px] overflow-y-auto pr-1">
-                {filteredFrames.map(frame => (
-                  <motion.div
-                    key={frame.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setSelectedFrame(frame.id === selectedFrame?.id ? null : frame)}
-                    className={`cursor-pointer rounded-xl border-2 overflow-hidden transition-all duration-200
-                      ${selectedFrame?.id === frame.id
-                        ? 'border-blue-500 shadow-md shadow-blue-100'
-                        : 'border-gray-100 hover:border-blue-200'}`}
+              {/* Category Filter Tabs */}
+              <div className="flex border-b border-gray-100 bg-gray-50/50">
+                {[
+                  { key: 'all', label: 'All Frames' },
+                  { key: 'eyeglasses', label: 'Eyeglasses' },
+                  { key: 'sunglasses', label: 'Sunglasses' },
+                ].map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setFilterCat(tab.key)}
+                    className={`flex-1 py-3 text-xs font-bold transition-all ${
+                      filterCat === tab.key
+                        ? 'text-blue-600 border-b-2 border-blue-600 bg-white'
+                        : 'text-gray-500 hover:text-gray-900'
+                    }`}
                   >
-                    {/* Thumbnail */}
-                    <div className="relative bg-gray-50">
-                      <img
-                        src={frame.thumb}
-                        alt={frame.name}
-                        className="w-full h-28 object-cover"
-                        loading="lazy"
-                      />
-                      {/* Glasses color dot */}
-                      <span
-                        className="absolute top-2 right-2 w-5 h-5 rounded-full border-2 border-white shadow"
-                        style={{ backgroundColor: frame.frameColor }}
-                      />
-                      {selectedFrame?.id === frame.id && (
-                        <div className="absolute inset-0 bg-blue-600/10 flex items-center justify-center">
-                          <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
-                            <FaCheck size={10} /> Selected
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    {/* Info */}
-                    <div className="p-2.5">
-                      <p className="font-bold text-sm text-gray-900">{frame.name}</p>
-                      <p className="text-xs text-gray-400">{frame.brand} · {frame.category}</p>
-                    </div>
-                  </motion.div>
+                    {tab.label}
+                  </button>
                 ))}
               </div>
-            </div>
-          </div>
-        </aside>
 
-        {/* ══ RIGHT PANEL — Camera + Try-On ══ */}
-        <div className="flex-1 flex flex-col gap-4">
-
-          {/* Camera Viewport */}
-          <div className="bg-black rounded-2xl overflow-hidden relative shadow-xl" style={{ aspectRatio: '16/9', minHeight: 300 }}>
-
-            {/* Camera not active placeholder */}
-            {!cameraActive && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-white z-10 bg-gradient-to-br from-gray-900 to-gray-800">
-                <BsCameraVideoOffFill size={56} className="text-gray-500 mb-4" />
-                <p className="text-lg font-bold text-gray-300 mb-1">Camera is off</p>
-                <p className="text-sm text-gray-500 mb-6">Click "Start Camera" to begin try-on</p>
-                <button
-                  onClick={startCamera}
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition-colors"
-                >
-                  <BsCameraVideoFill /> Start Camera
-                </button>
-                {cameraError && (
-                  <p className="mt-4 text-red-400 text-sm bg-red-900/30 px-4 py-2 rounded-lg max-w-xs text-center">
-                    {cameraError}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Video feed */}
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className="w-full h-full object-cover"
-              style={{
-                transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
-                display: cameraActive ? 'block' : 'none',
-              }}
-            />
-
-            {/* ── Glasses SVG Overlay ── */}
-            {cameraActive && selectedFrame && (
-              <div
-                ref={overlayRef}
-                className="absolute left-1/2 pointer-events-none"
-                style={{
-                  width: `${glassesScale}%`,
-                  transform: 'translateX(-50%)',
-                  top: `${glassesY}%`,
-                  filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.4))',
-                  transition: 'top 0.1s, width 0.1s',
-                }}
-              >
-                <GlassesSVG frame={selectedFrame} />
-              </div>
-            )}
-
-            {/* Guide hint when active but no frame selected */}
-            {cameraActive && !selectedFrame && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs font-semibold px-4 py-2 rounded-full backdrop-blur-sm">
-                👈 Select a frame from the left panel to try on
-              </div>
-            )}
-
-            {/* Top toolbar */}
-            {cameraActive && (
-              <div className="absolute top-3 right-3 flex gap-2">
-                <button
-                  onClick={flipCamera}
-                  className="bg-black/50 hover:bg-black/80 text-white p-2 rounded-lg backdrop-blur-sm transition-colors"
-                  title="Flip camera"
-                >
-                  <MdFlipCameraAndroid size={18} />
-                </button>
-                <button
-                  onClick={stopCamera}
-                  className="bg-red-600/80 hover:bg-red-700 text-white p-2 rounded-lg backdrop-blur-sm transition-colors"
-                  title="Stop camera"
-                >
-                  <FaTimes size={16} />
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* ── Controls ── */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-              {/* Size slider */}
-              <div>
-                <label className="text-xs font-bold text-gray-600 uppercase tracking-wide flex items-center gap-2 mb-2">
-                  <FaSearchPlus className="text-blue-500" /> Frame Size
-                  <span className="ml-auto text-blue-600 font-black">{glassesScale}%</span>
-                </label>
-                <input
-                  type="range" min="40" max="95" value={glassesScale}
-                  onChange={e => setGlassesScale(Number(e.target.value))}
-                  className="w-full accent-blue-600 cursor-pointer"
-                />
-                <div className="flex justify-between text-xs text-gray-400 mt-1">
-                  <span>Smaller</span><span>Larger</span>
-                </div>
-              </div>
-
-              {/* Vertical position slider */}
-              <div>
-                <label className="text-xs font-bold text-gray-600 uppercase tracking-wide flex items-center gap-2 mb-2">
-                  <FaArrowUp className="text-blue-500" /> Vertical Position
-                  <span className="ml-auto text-blue-600 font-black">{glassesY}%</span>
-                </label>
-                <input
-                  type="range" min="15" max="60" value={glassesY}
-                  onChange={e => setGlassesY(Number(e.target.value))}
-                  className="w-full accent-blue-600 cursor-pointer"
-                />
-                <div className="flex justify-between text-xs text-gray-400 mt-1">
-                  <span>Higher</span><span>Lower</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3 mt-5">
-              {!cameraActive ? (
-                <button
-                  onClick={startCamera}
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition-colors"
-                >
-                  <BsCameraVideoFill /> Start Camera
-                </button>
-              ) : (
-                <button
-                  onClick={stopCamera}
-                  className="flex items-center gap-2 bg-gray-700 hover:bg-gray-900 text-white font-bold px-6 py-3 rounded-xl transition-colors"
-                >
-                  <FaStopCircle /> Stop Camera
-                </button>
-              )}
-
-              <button
-                onClick={capturePhoto}
-                disabled={!cameraActive}
-                className={`flex items-center gap-2 font-bold px-6 py-3 rounded-xl transition-colors
-                  ${cameraActive
-                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
-              >
-                <FaCamera /> Capture Photo
-              </button>
-
-              {capturedImage && (
-                <button
-                  onClick={downloadPhoto}
-                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-bold px-6 py-3 rounded-xl transition-colors"
-                >
-                  <FaDownload /> Download
-                </button>
-              )}
-
-              {selectedFrame && (
-                <button
-                  onClick={() => setSelectedFrame(null)}
-                  className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 font-bold px-5 py-3 rounded-xl border border-red-200 transition-colors"
-                >
-                  <FaTimes /> Remove Frame
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* ── Captured Photo Preview ── */}
-          <AnimatePresence>
-            {capturedImage && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                    <FaCamera className="text-green-500" /> Captured Photo
-                  </h3>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={downloadPhoto}
-                      className="flex items-center gap-1.5 bg-blue-600 text-white text-sm font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              {/* Frames Grid */}
+              <div className="p-4 max-h-[520px] overflow-y-auto space-y-3">
+                {filteredFrames.map((frame) => {
+                  const isSelected = selectedFrame?.id === frame.id;
+                  return (
+                    <motion.div
+                      key={frame.id}
+                      whileHover={{ scale: 1.015 }}
+                      whileTap={{ scale: 0.985 }}
+                      onClick={() => setSelectedFrame(isSelected ? null : frame)}
+                      className={`cursor-pointer rounded-xl border-2 p-3 transition-all flex items-center gap-4 ${
+                        isSelected
+                          ? 'border-blue-600 bg-blue-50/40 shadow-sm'
+                          : 'border-gray-100 hover:border-gray-300 bg-white'
+                      }`}
                     >
-                      <FaDownload size={12} /> Save Photo
+                      {/* Thumbnail */}
+                      <div className="w-20 h-14 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center border border-gray-200">
+                        <img
+                          src={frame.thumb}
+                          alt={frame.name}
+                          className="w-full h-full object-cover mix-blend-multiply"
+                        />
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <h4 className="font-bold text-gray-900 text-sm truncate">
+                            {frame.name}
+                          </h4>
+                          {frame.customImage && (
+                            <span className="bg-purple-100 text-purple-700 text-[10px] font-black px-1.5 py-0.5 rounded">
+                              CUSTOM
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 font-medium">
+                          {frame.brand}
+                        </p>
+                      </div>
+
+                      {/* Selection Checkmark */}
+                      <div
+                        className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+                          isSelected
+                            ? 'bg-blue-600 text-white'
+                            : 'border-2 border-gray-300 text-transparent'
+                        }`}
+                      >
+                        <FaCheck size={10} />
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* ════ RIGHT PANEL: Live AI Try-On Screen (8 cols) ════ */}
+          <div className="lg:col-span-8 flex flex-col gap-4">
+
+            {/* Camera Viewport Canvas */}
+            <div className="bg-black rounded-3xl overflow-hidden relative shadow-2xl border-4 border-gray-900 aspect-video flex items-center justify-center">
+
+              {/* Standby State Overlay */}
+              {!cameraActive && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-gradient-to-b from-gray-900 via-gray-900 to-black p-6 text-center z-20">
+                  <div className="w-20 h-20 bg-blue-600/20 border-2 border-blue-500/40 rounded-full flex items-center justify-center mb-5 text-blue-400">
+                    <BsCameraVideoFill size={36} />
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-black mb-2">
+                    Front Camera Required
+                  </h3>
+                  <p className="text-gray-400 text-sm max-w-md mb-6 leading-relaxed">
+                    Click the button below to activate your webcam. The AI face detector will automatically scale and fit the selected frame to your face!
+                  </p>
+                  <button
+                    onClick={startCamera}
+                    className="flex items-center gap-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-black px-8 py-4 rounded-2xl shadow-xl shadow-blue-500/30 transition-all text-base"
+                  >
+                    <BsCameraVideoFill /> Start Live Try-On Camera
+                  </button>
+
+                  {cameraError && (
+                    <p className="mt-4 text-xs bg-red-900/60 border border-red-500 text-red-200 px-4 py-2 rounded-xl max-w-sm">
+                      {cameraError}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Live Render Canvas (Synchronized Camera + AI Glasses) */}
+              <canvas
+                ref={canvasRef}
+                className="w-full h-full object-contain"
+                style={{ display: cameraActive ? 'block' : 'none' }}
+              />
+
+              {/* Status & Camera Badges */}
+              {cameraActive && (
+                <>
+                  <div className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-black/60 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 text-white text-xs font-semibold">
+                    <span
+                      className={`w-2.5 h-2.5 rounded-full ${
+                        smoothedFaceRef.current.detected
+                          ? 'bg-green-400 animate-pulse'
+                          : 'bg-yellow-400'
+                      }`}
+                    />
+                    {aiStatus}
+                  </div>
+
+                  <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+                    <button
+                      onClick={flipCamera}
+                      className="bg-black/60 hover:bg-black/80 backdrop-blur-md text-white p-2.5 rounded-xl border border-white/10 transition-colors"
+                      title="Flip Camera"
+                    >
+                      <MdFlipCameraAndroid size={18} />
                     </button>
                     <button
-                      onClick={() => setCapturedImage(null)}
-                      className="text-gray-400 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                      onClick={stopCamera}
+                      className="bg-red-600/80 hover:bg-red-700 backdrop-blur-md text-white p-2.5 rounded-xl transition-colors"
+                      title="Stop Camera"
                     >
-                      <FaTimes />
+                      <FaTimes size={16} />
                     </button>
                   </div>
+                </>
+              )}
+            </div>
+
+            {/* ════ Try-On Controls Bar ════ */}
+            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm flex flex-col gap-5">
+
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-100 pb-4">
+                {/* Auto-Fit AI Mode Toggle */}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setAutoFit(!autoFit)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                      autoFit
+                        ? 'bg-green-100 text-green-800 border border-green-300'
+                        : 'bg-gray-100 text-gray-600 border border-gray-200'
+                    }`}
+                  >
+                    <FaMagic /> Auto Face-Fit: {autoFit ? 'ON (AI Tracking)' : 'OFF (Manual)'}
+                  </button>
+                  <span className="text-xs text-gray-400 hidden sm:inline">
+                    {autoFit
+                      ? 'Glasses automatically follow head tilt, angle, & distance'
+                      : 'Manual sizing active'}
+                  </span>
                 </div>
-                <img
-                  src={capturedImage}
-                  alt="Your try-on"
-                  className="w-full rounded-xl max-h-80 object-contain bg-gray-50"
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+
+                {/* Primary Action Buttons */}
+                <div className="flex items-center gap-2 ml-auto">
+                  {cameraActive && (
+                    <button
+                      onClick={capturePhoto}
+                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-sm text-sm transition-all"
+                    >
+                      <FaCamera /> Capture Photo
+                    </button>
+                  )}
+                  {selectedFrame && (
+                    <button
+                      onClick={() => setSelectedFrame(null)}
+                      className="flex items-center gap-1.5 text-xs text-red-600 hover:text-red-700 font-bold bg-red-50 hover:bg-red-100 px-3.5 py-2.5 rounded-xl transition-colors"
+                    >
+                      <FaTimes /> Remove Frame
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Fine-Tuning Sliders */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <div className="flex items-center justify-between text-xs font-bold text-gray-700 mb-1.5">
+                    <span className="flex items-center gap-1.5">
+                      <FaSlidersH className="text-blue-500" /> Frame Size Multiplier
+                    </span>
+                    <span className="text-blue-600 font-black">{Math.round(scaleOffset * 100)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.7"
+                    max="1.4"
+                    step="0.02"
+                    value={scaleOffset}
+                    onChange={(e) => setScaleOffset(parseFloat(e.target.value))}
+                    className="w-full accent-blue-600 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[11px] text-gray-400 mt-0.5">
+                    <span>Tighter Fit</span>
+                    <span>Standard</span>
+                    <span>Wider Fit</span>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between text-xs font-bold text-gray-700 mb-1.5">
+                    <span className="flex items-center gap-1.5">
+                      <FaArrowsAlt className="text-blue-500" /> Nose Bridge Height
+                    </span>
+                    <span className="text-blue-600 font-black">{yOffset} px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="-40"
+                    max="40"
+                    step="2"
+                    value={yOffset}
+                    onChange={(e) => setYOffset(parseInt(e.target.value, 10))}
+                    className="w-full accent-blue-600 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[11px] text-gray-400 mt-0.5">
+                    <span>Higher on Bridge</span>
+                    <span>Centered</span>
+                    <span>Lower on Nose</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ════ Photo Captured Preview Modal ════ */}
+            <AnimatePresence>
+              {capturedImage && (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 15 }}
+                  className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg flex flex-col md:flex-row items-center gap-6"
+                >
+                  <div className="w-full md:w-56 rounded-xl overflow-hidden shadow-inner border border-gray-200 bg-black flex-shrink-0">
+                    <img
+                      src={capturedImage}
+                      alt="Your Virtual Try-On Snapshot"
+                      className="w-full h-auto object-cover"
+                    />
+                  </div>
+
+                  <div className="flex-1">
+                    <span className="inline-block bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full mb-2">
+                      📸 Snapshot Ready
+                    </span>
+                    <h4 className="font-black text-gray-900 text-lg mb-1">
+                      Looking Great with {selectedFrame?.name || 'MAXVISION Frames'}!
+                    </h4>
+                    <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+                      Download your try-on photo to save it, share with friends, or show it to your optician at our Ranchi stores!
+                    </p>
+
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        onClick={downloadPhoto}
+                        className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-2.5 rounded-xl text-sm shadow-md shadow-green-600/20 transition-all"
+                      >
+                        <FaDownload /> Download Image (.JPG)
+                      </button>
+                      <button
+                        onClick={() => setCapturedImage(null)}
+                        className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 font-bold px-4 py-2.5 rounded-xl text-sm bg-gray-100 hover:bg-gray-200 transition-colors"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+          </div>
         </div>
       </div>
     </div>
