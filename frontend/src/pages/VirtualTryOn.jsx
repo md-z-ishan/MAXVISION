@@ -8,7 +8,7 @@ import { MdFlipCameraAndroid } from 'react-icons/md';
 import { BsCameraVideoFill } from 'react-icons/bs';
 import axios from '../api/axios';
 
-// ── Complete Store Eyewear Catalog (Real MAXVISION Products) ──
+// ── Pure Glasses Only Catalog (Zero Hats/Accessories - 100% Eyewear Frames) ──
 const ALL_STORE_GLASSES = [
   // ── Eyeglasses ──
   {
@@ -21,7 +21,7 @@ const ALL_STORE_GLASSES = [
     lensColor: 'rgba(255, 255, 255, 0.08)',
     price: 6990,
     aspectRatio: 0.38,
-    thumb: 'https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=320&h=200&fit=crop&auto=format',
+    thumb: '/images/eyeglasses_rectangle_1778585167025.png',
   },
   {
     id: 'rb-clubmaster-3016',
@@ -33,7 +33,7 @@ const ALL_STORE_GLASSES = [
     lensColor: 'rgba(255, 255, 255, 0.08)',
     price: 8990,
     aspectRatio: 0.40,
-    thumb: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=320&h=200&fit=crop&auto=format',
+    thumb: '/images/eyeglasses_clubmaster_1778585256926.png',
   },
   {
     id: 'oakley-ox8154',
@@ -45,7 +45,7 @@ const ALL_STORE_GLASSES = [
     lensColor: 'rgba(255, 255, 255, 0.08)',
     price: 12990,
     aspectRatio: 0.36,
-    thumb: 'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=320&h=200&fit=crop&auto=format',
+    thumb: '/images/eyeglasses_square_1778585274768.png',
   },
   {
     id: 'titan-round-nxt',
@@ -57,7 +57,7 @@ const ALL_STORE_GLASSES = [
     lensColor: 'rgba(255, 255, 255, 0.08)',
     price: 3490,
     aspectRatio: 0.42,
-    thumb: 'https://images.unsplash.com/photo-1577803645773-f96470509666?w=320&h=200&fit=crop&auto=format',
+    thumb: '/images/eyeglasses_round_1778585243803.png',
   },
   {
     id: 'fastrack-nb034',
@@ -69,7 +69,7 @@ const ALL_STORE_GLASSES = [
     lensColor: 'rgba(255, 255, 255, 0.08)',
     price: 2290,
     aspectRatio: 0.38,
-    thumb: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=320&h=200&fit=crop&auto=format',
+    thumb: '/images/eyeglasses_rectangle_1778585167025.png',
   },
   {
     id: 'vc-cateye-12480',
@@ -81,7 +81,7 @@ const ALL_STORE_GLASSES = [
     lensColor: 'rgba(210, 80, 120, 0.12)',
     price: 1999,
     aspectRatio: 0.40,
-    thumb: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=320&h=200&fit=crop&auto=format',
+    thumb: '/images/eyeglasses_cateye_1778585181224.png',
   },
   {
     id: 'jj-aviator-16200',
@@ -93,7 +93,7 @@ const ALL_STORE_GLASSES = [
     lensColor: 'rgba(255, 255, 255, 0.08)',
     price: 4490,
     aspectRatio: 0.42,
-    thumb: 'https://images.unsplash.com/photo-1508296695146-257a814070b4?w=320&h=200&fit=crop&auto=format',
+    thumb: '/images/eyeglasses_aviator_1778585200650.png',
   },
   {
     id: 'la-slim-15321',
@@ -105,7 +105,7 @@ const ALL_STORE_GLASSES = [
     lensColor: 'rgba(37, 99, 235, 0.10)',
     price: 2500,
     aspectRatio: 0.37,
-    thumb: 'https://images.unsplash.com/photo-1604697964648-9f4aa1adc2cb?w=320&h=200&fit=crop&auto=format',
+    thumb: '/images/eyeglasses_rectangle_1778585167025.png',
   },
   {
     id: 'vp-geometric-3021',
@@ -117,7 +117,7 @@ const ALL_STORE_GLASSES = [
     lensColor: 'rgba(255, 255, 255, 0.08)',
     price: 1799,
     aspectRatio: 0.39,
-    thumb: 'https://images.unsplash.com/photo-1485053329638-4e9f0ba3de14?w=320&h=200&fit=crop&auto=format',
+    thumb: '/images/eyeglasses_geometric_1778585220940.png',
   },
   {
     id: 'rf-oval-ranchi',
@@ -129,7 +129,7 @@ const ALL_STORE_GLASSES = [
     lensColor: 'rgba(255, 255, 255, 0.08)',
     price: 1299,
     aspectRatio: 0.41,
-    thumb: 'https://images.unsplash.com/photo-1512095507099-b8fe50b3acb8?w=320&h=200&fit=crop&auto=format',
+    thumb: '/images/eyeglasses_round_1778585243803.png',
   },
 
   // ── Sunglasses ──
@@ -140,10 +140,10 @@ const ALL_STORE_GLASSES = [
     category: 'sunglasses',
     type: 'wayfarer',
     frameColor: '#111111',
-    lensColor: 'rgba(15, 35, 25, 0.65)', // G-15 green tint
+    lensColor: 'rgba(15, 35, 25, 0.65)',
     price: 9990,
     aspectRatio: 0.39,
-    thumb: 'https://images.unsplash.com/photo-1473496169904-658ba7574b0d?w=320&h=200&fit=crop&auto=format',
+    thumb: '/images/sunglasses_rectangle_1778585337465.png',
   },
   {
     id: 'rb-aviator-3025',
@@ -155,7 +155,7 @@ const ALL_STORE_GLASSES = [
     lensColor: 'rgba(20, 50, 30, 0.62)',
     price: 11990,
     aspectRatio: 0.43,
-    thumb: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=320&h=200&fit=crop&auto=format',
+    thumb: '/images/sunglasses_aviator_1778585307519.png',
   },
   {
     id: 'oakley-holbrook-9102',
@@ -167,7 +167,7 @@ const ALL_STORE_GLASSES = [
     lensColor: 'rgba(20, 20, 25, 0.70)',
     price: 15490,
     aspectRatio: 0.38,
-    thumb: 'https://images.unsplash.com/photo-1556306535-0f09a537f0a3?w=320&h=200&fit=crop&auto=format',
+    thumb: '/images/sunglasses_square_1778585405954.png',
   },
   {
     id: 'fastrack-sport-109',
@@ -179,7 +179,7 @@ const ALL_STORE_GLASSES = [
     lensColor: 'rgba(30, 40, 60, 0.68)',
     price: 1495,
     aspectRatio: 0.37,
-    thumb: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=320&h=200&fit=crop&auto=format',
+    thumb: '/images/sunglasses_geometric_1778585376931.png',
   },
   {
     id: 'vc-cateye-sun-14227',
@@ -191,7 +191,7 @@ const ALL_STORE_GLASSES = [
     lensColor: 'rgba(80, 40, 20, 0.58)',
     price: 1699,
     aspectRatio: 0.40,
-    thumb: 'https://images.unsplash.com/photo-1577744486770-020ab432438a?w=320&h=200&fit=crop&auto=format',
+    thumb: '/images/sunglasses_cateye_1778585356948.png',
   },
   {
     id: 'titan-dash-aviator',
@@ -203,7 +203,7 @@ const ALL_STORE_GLASSES = [
     lensColor: 'rgba(15, 30, 60, 0.65)',
     price: 3990,
     aspectRatio: 0.42,
-    thumb: 'https://images.unsplash.com/photo-1522478706765-f001a9ad7e8b?w=320&h=200&fit=crop&auto=format',
+    thumb: '/images/sunglasses_aviator_1778585307519.png',
   },
   {
     id: 'asif-retro-round',
@@ -215,45 +215,19 @@ const ALL_STORE_GLASSES = [
     lensColor: 'rgba(90, 50, 25, 0.60)',
     price: 999,
     aspectRatio: 0.42,
-    thumb: 'https://images.unsplash.com/photo-1529159696229-09e95dbd36d7?w=320&h=200&fit=crop&auto=format',
-  },
-
-  // ── Computer / Blue-Cut Glasses ──
-  {
-    id: 'blu-zero-13380',
-    name: 'Lenskart Blu Zero Power LB',
-    brand: 'Lenskart Blu',
-    category: 'computer_glasses',
-    type: 'rectangle',
-    frameColor: '#18181B',
-    lensColor: 'rgba(147, 197, 253, 0.22)', // blue-light blocking shimmer
-    price: 1500,
-    aspectRatio: 0.38,
-    thumb: 'https://images.unsplash.com/photo-1591076482161-42ce6da69f67?w=320&h=200&fit=crop&auto=format',
+    thumb: '/images/sunglasses_round_1778585321001.png',
   },
   {
-    id: 'jj-blu-screen-16540',
-    name: 'John Jacobs Blu Screen JJ',
-    brand: 'John Jacobs',
-    category: 'computer_glasses',
-    type: 'rectangle',
-    frameColor: '#1E3A8A',
-    lensColor: 'rgba(147, 197, 253, 0.24)',
-    price: 3490,
-    aspectRatio: 0.39,
-    thumb: 'https://images.unsplash.com/photo-1587091813089-8b8f8f71e01d?w=320&h=200&fit=crop&auto=format',
-  },
-  {
-    id: 'vc-blu-slim-12300',
-    name: 'Vincent Chase Blu Slim VC',
-    brand: 'Vincent Chase',
-    category: 'computer_glasses',
-    type: 'catEye',
-    frameColor: '#E11D48',
-    lensColor: 'rgba(147, 197, 253, 0.20)',
-    price: 1299,
-    aspectRatio: 0.38,
-    thumb: 'https://images.unsplash.com/photo-1612198188060-c7c2a3b66eae?w=320&h=200&fit=crop&auto=format',
+    id: 'retro-clubmaster-sun',
+    name: 'Vintage Clubmaster Sun',
+    brand: 'MAXVISION Sun',
+    category: 'sunglasses',
+    type: 'clubmaster',
+    frameColor: '#1A1A1A',
+    lensColor: 'rgba(30, 30, 30, 0.65)',
+    price: 2499,
+    aspectRatio: 0.40,
+    thumb: '/images/sunglasses_clubmaster_1778585391348.png',
   },
 ];
 
@@ -559,7 +533,7 @@ const VirtualTryOn = () => {
         const response = await axios.get('products/');
         if (response.data && response.data.length > 0) {
           const apiFrames = response.data
-            .filter((p) => p.category !== 'contact_lenses')
+            .filter((p) => p.category === 'eyeglasses' || p.category === 'sunglasses')
             .map((p) => {
               // Map backend attributes to try-on specs
               let shape = 'rectangle';
@@ -595,7 +569,9 @@ const VirtualTryOn = () => {
                 thumb:
                   p.image_url ||
                   p.image ||
-                  'https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=320&h=200&fit=crop&auto=format',
+                  (p.category === 'sunglasses'
+                    ? '/images/sunglasses_aviator_1778585307519.png'
+                    : '/images/eyeglasses_rectangle_1778585167025.png'),
               };
             });
 
@@ -996,7 +972,6 @@ const VirtualTryOn = () => {
                   { key: 'all', label: 'All Glasses' },
                   { key: 'eyeglasses', label: 'Eyeglasses' },
                   { key: 'sunglasses', label: 'Sunglasses' },
-                  { key: 'computer_glasses', label: 'Computer' },
                 ].map((tab) => (
                   <button
                     key={tab.key}
