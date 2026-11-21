@@ -11,6 +11,7 @@ import Register from './pages/Register';
 import Orders from './pages/Orders';
 import Wishlist from './pages/Wishlist';
 import Stores from './pages/Stores';
+import VirtualTryOn from './pages/VirtualTryOn';
 import { useDispatch } from 'react-redux';
 import axios from './api/axios';
 import { setUser } from './redux/authSlice';
@@ -46,7 +47,7 @@ function App() {
         <Route path="/orders" element={<Orders />} />
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/stores" element={<Stores />} />
-        <Route path="/try-on" element={<div className="text-center py-20 font-bold text-2xl text-primary">Virtual Try On feature coming soon!</div>} />
+        <Route path="/try-on" element={<VirtualTryOn />} />
       </Routes>
     </MainLayout>
   );
