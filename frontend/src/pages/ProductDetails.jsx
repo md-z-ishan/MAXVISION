@@ -103,6 +103,15 @@ const ProductDetails = () => {
                 </span>
               </>
             )}
+            {product.stock_quantity <= 0 ? (
+              <span className="ml-3 text-red-600 font-bold bg-red-100 px-2.5 py-1 rounded text-sm">
+                Out of Stock
+              </span>
+            ) : product.stock_quantity <= 5 ? (
+              <span className="ml-3 text-amber-700 font-semibold bg-amber-50 px-2.5 py-1 rounded text-xs">
+                Only {product.stock_quantity} left!
+              </span>
+            ) : null}
             <p className="text-xs text-gray-400 mt-1">Inclusive of all taxes</p>
           </div>
 
@@ -172,10 +181,22 @@ const ProductDetails = () => {
             <motion.button 
               whileTap={{ scale: 0.95 }}
               onClick={handleAddToCart}
-              disabled={isAdding}
-              className={`flex-1 py-4 rounded-lg font-bold text-lg text-white transition-all flex justify-center items-center gap-2 ${isAdding ? 'bg-teal-500' : 'bg-secondary hover:bg-teal-600'}`}
+              disabled={isAdding || product.stock_quantity <= 0}
+              className={`flex-1 py-4 rounded-lg font-bold text-lg text-white transition-all flex justify-center items-center gap-2 ${
+                product.stock_quantity <= 0
+                  ? 'bg-gray-400 cursor-not-allowed shadow-none'
+                  : isAdding
+                  ? 'bg-teal-500'
+                  : 'bg-secondary hover:bg-teal-600 shadow-md'
+              }`}
             >
-              {isAdding ? <><span className="animate-spin text-xl">◌</span> Adding...</> : 'Add to Cart / Buy Now'}
+              {isAdding ? (
+                <><span className="animate-spin text-xl">◌</span> Adding...</>
+              ) : product.stock_quantity <= 0 ? (
+                'Currently Out of Stock'
+              ) : (
+                'Add to Cart / Buy Now'
+              )}
             </motion.button>
           </div>
 

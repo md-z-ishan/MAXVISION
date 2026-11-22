@@ -46,25 +46,44 @@ class CartViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Cart.objects.filter(user=self.request.user)
 
-    def perform_create(self, serializer):
-        product_id = self.request.data.get('product_id')
-        lens_package = self.request.data.get('lens_package', 'frame_only')
-        
-        lens_price = 0.0
-        if lens_package == 'single_vision':
-            lens_price = 500.0
-        elif lens_package == 'bifocal':
-            lens_price = 1500.0
-        elif lens_package == 'zero_power':
-            lens_price = 300.0
+    def create(self, request, *args, **kwargs):
+        product_id = request.data.get('product_id')
+        lens_package = request.data.get('lens_package', 'frame_only')
 
-        cart_item = Cart.objects.filter(user=self.request.user, product_id=product_id, lens_package=lens_package).first()
+        try:
+            product = Product.objects.get(pk=product_id)
+        except Product.DoesNotExist:
+            return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if product.stock_quantity <= 0:
+            return Response(
+                {"error": f"'{product.name}' is currently out of stock."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        cart_item = Cart.objects.filter(user=request.user, product_id=product_id, lens_package=lens_package).first()
         if cart_item:
+            if cart_item.quantity + 1 > product.stock_quantity:
+                return Response(
+                    {"error": f"Cannot add more. Only {product.stock_quantity} available in stock."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             cart_item.quantity += 1
             cart_item.save()
-            return cart_item
+            return Response(CartSerializer(cart_item).data, status=status.HTTP_200_OK)
         else:
-            serializer.save(user=self.request.user, lens_price=lens_price)
+            lens_price = 0.0
+            if lens_package == 'single_vision':
+                lens_price = 500.0
+            elif lens_package == 'bifocal':
+                lens_price = 1500.0
+            elif lens_package == 'zero_power':
+                lens_price = 300.0
+
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(user=request.user, lens_price=lens_price)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class UpdateCartQuantity(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -73,6 +92,11 @@ class UpdateCartQuantity(APIView):
         try:
             cart_item = Cart.objects.get(pk=pk, user=request.user)
             if action == 'increase':
+                if cart_item.quantity + 1 > cart_item.product.stock_quantity:
+                    return Response(
+                        {"error": f"Maximum available stock is {cart_item.product.stock_quantity}."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
                 cart_item.quantity += 1
             elif action == 'decrease' and cart_item.quantity > 1:
                 cart_item.quantity -= 1
@@ -113,34 +137,62 @@ class CheckoutAPI(APIView):
         address = request.data.get('address')
         mobile = request.data.get('mobile')
         prescription_file = request.FILES.get('prescription_file')
-        cart_items = Cart.objects.filter(user=request.user)
 
-        if not cart_items.exists():
-            return Response({"error": "Cart is empty"}, status=status.HTTP_400_BAD_REQUEST)
+        from django.db import transaction
+        from django.db.models import F
 
-        total = sum(item.subtotal() for item in cart_items)
-        
-        order = Order.objects.create(
-            user=request.user,
-            address=address,
-            mobile=mobile,
-            total_amount=total,
-            status="Pending",
-            prescription_file=prescription_file
-        )
+        with transaction.atomic():
+            # Lock cart items with pre-joined product details to prevent queries during rollback
+            cart_items = Cart.objects.select_related('product').select_for_update().filter(user=request.user)
 
-        for item in cart_items:
-            OrderItem.objects.create(
-                order=order,
-                product=item.product,
-                quantity=item.quantity,
-                price=item.product.discounted_price,
-                lens_package=item.lens_package,
-                lens_price=item.lens_price
+            if not cart_items.exists():
+                return Response({"error": "Cart is empty"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # 1. Atomic conditional stock deduction for every item in cart
+            for item in cart_items:
+                rows_updated = Product.objects.filter(
+                    pk=item.product_id,
+                    stock_quantity__gte=item.quantity
+                ).update(stock_quantity=F('stock_quantity') - item.quantity)
+
+                if rows_updated == 0:
+                    transaction.set_rollback(True)
+                    return Response(
+                        {"error": f"Insufficient stock for '{item.product.name}'. Available: {item.product.stock_quantity}, Requested: {item.quantity}."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+            # 2. Total amount computed strictly from server DB prices (ignoring any client value)
+            total = sum(item.subtotal() for item in cart_items)
+
+            # 3. Create Order
+            order = Order.objects.create(
+                user=request.user,
+                address=address,
+                mobile=mobile,
+                total_amount=total,
+                status="Pending",
+                prescription_file=prescription_file
             )
-        
-        cart_items.delete()
-        return Response({"message": "Order placed successfully", "order_id": order.id}, status=status.HTTP_201_CREATED)
+
+            # 4. Snapshot OrderItems
+            for item in cart_items:
+                OrderItem.objects.create(
+                    order=order,
+                    product=item.product,
+                    quantity=item.quantity,
+                    price=item.product.discounted_price,
+                    lens_package=item.lens_package,
+                    lens_price=item.lens_price
+                )
+
+            # 5. Clear cart atomically within the same transaction
+            cart_items.delete()
+
+            return Response({
+                "message": "Order placed successfully",
+                "order_id": order.id
+            }, status=status.HTTP_201_CREATED)
 
 class UserOrdersAPI(generics.ListAPIView):
     serializer_class = OrderSerializer

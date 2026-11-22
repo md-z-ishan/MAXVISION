@@ -160,7 +160,11 @@ const Products = () => {
                   key={product.id} 
                   className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-xl transition-shadow relative flex flex-col"
                 >
-                  {product.discount_percentage > 0 && (
+                  {product.stock_quantity <= 0 ? (
+                    <span className="absolute top-4 left-4 bg-gray-700/90 text-white text-xs font-bold px-2.5 py-1 rounded shadow-sm z-10">
+                      Out of Stock
+                    </span>
+                  ) : product.discount_percentage > 0 && (
                     <span className="absolute top-4 left-4 bg-accent text-white text-xs font-bold px-2 py-1 rounded">
                       {product.discount_percentage}% OFF
                     </span>

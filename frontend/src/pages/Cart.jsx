@@ -72,7 +72,18 @@ const Cart = () => {
               
               <div className="flex-grow">
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-bold text-lg text-primary">{item.product.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-lg text-primary">{item.product.name}</h3>
+                    {item.product.stock_quantity <= 0 ? (
+                      <span className="text-xs bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded">
+                        Out of Stock
+                      </span>
+                    ) : item.product.stock_quantity < item.quantity ? (
+                      <span className="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded">
+                        Only {item.product.stock_quantity} left
+                      </span>
+                    ) : null}
+                  </div>
                   <button onClick={() => removeItem(item.id)} className="text-gray-400 hover:text-red-500 transition-colors">
                     <FaTrash />
                   </button>
@@ -87,7 +98,14 @@ const Cart = () => {
                   <div className="flex items-center border border-gray-300 rounded">
                     <button onClick={() => updateQuantity(item.id, 'decrease')} className="px-3 py-1 hover:bg-gray-100">-</button>
                     <span className="px-3 py-1 border-x border-gray-300">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.id, 'increase')} className="px-3 py-1 hover:bg-gray-100">+</button>
+                    <button 
+                      disabled={item.quantity >= item.product.stock_quantity} 
+                      onClick={() => updateQuantity(item.id, 'increase')} 
+                      className={`px-3 py-1 ${item.quantity >= item.product.stock_quantity ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+                      title={item.quantity >= item.product.stock_quantity ? 'Max stock reached' : ''}
+                    >
+                      +
+                    </button>
                   </div>
                   <div className="font-extrabold text-xl">₹{item.subtotal}</div>
                 </div>
@@ -122,11 +140,24 @@ const Cart = () => {
             <span>Safe & Secure Payments. Easy returns. 100% Authentic products.</span>
           </div>
 
+          {items.some(item => item.product.stock_quantity < item.quantity) && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg font-medium">
+              Some items in your cart exceed available stock. Please adjust quantities before checkout.
+            </div>
+          )}
+
           <button 
+            disabled={items.some(item => item.product.stock_quantity < item.quantity)}
             onClick={() => navigate('/checkout')}
-            className="w-full bg-secondary hover:bg-teal-600 text-white font-bold py-4 rounded-lg transition-colors shadow-md"
+            className={`w-full font-bold py-4 rounded-lg transition-colors shadow-md ${
+              items.some(item => item.product.stock_quantity < item.quantity)
+                ? 'bg-gray-400 text-white cursor-not-allowed shadow-none'
+                : 'bg-secondary hover:bg-teal-600 text-white'
+            }`}
           >
-            Proceed to Checkout
+            {items.some(item => item.product.stock_quantity < item.quantity)
+              ? 'Adjust Out-of-Stock Items'
+              : 'Proceed to Checkout'}
           </button>
         </div>
       </div>

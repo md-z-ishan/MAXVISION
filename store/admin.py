@@ -15,8 +15,9 @@ class WishlistAdmin(admin.ModelAdmin):
 
 admin.site.register(Wishlist, WishlistAdmin)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'total_amount', 'status', 'prescription_file', 'created_at')
-    list_filter = ('status', 'created_at')
+    list_display = ('id', 'user', 'total_amount', 'status', 'stock_restored', 'prescription_file', 'created_at')
+    list_filter = ('status', 'stock_restored', 'created_at')
+    readonly_fields = ('stock_restored',)
 
 admin.site.register(Order, OrderAdmin)
 admin.site.register(OrderItem)
