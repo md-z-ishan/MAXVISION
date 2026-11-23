@@ -196,3 +196,22 @@ class Invoice(models.Model):
 
     def __str__(self):
         return f"Invoice {self.serial_number} for Order #{self.order.id}"
+
+
+class HomeVisitRequest(models.Model):
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('SCHEDULED', 'Scheduled'),
+        ('COMPLETED', 'Completed'),
+        ('CANCELLED', 'Cancelled')
+    ]
+    name = models.CharField(max_length=150)
+    phone = models.CharField(max_length=20)
+    address = models.TextField()
+    preferred_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='PENDING')
+    notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Home Visit: {self.name} ({self.phone}) - {self.status}"

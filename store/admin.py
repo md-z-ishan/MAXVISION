@@ -1,5 +1,12 @@
 from django.contrib import admin
-from .models import Product, Cart, Wishlist, Order, OrderItem, Prescription, UserProfile, Invoice
+from .models import Product, Cart, Wishlist, Order, OrderItem, Prescription, UserProfile, Invoice, HomeVisitRequest
+
+class HomeVisitRequestAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'phone', 'preferred_date', 'status', 'created_at')
+    list_filter = ('status', 'preferred_date', 'created_at')
+    search_fields = ('name', 'phone', 'address')
+
+admin.site.register(HomeVisitRequest, HomeVisitRequestAdmin)
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('name', 'category', 'brand', 'price', 'discount_percentage', 'stock_quantity', 'lens_type', 'wear_duration')

@@ -59,4 +59,5 @@ urlpatterns += [
     path('api/wishlist/toggle/<int:product_id>/', api_views.ToggleWishlistAPI.as_view(), name='api_toggle_wishlist'),
     path('api/checkout/', api_views.CheckoutAPI.as_view(), name='api_checkout'),
     path('api/orders/', api_views.UserOrdersAPI.as_view(), name='api_orders'),
+    path('api/home-visit/', api_views.HomeVisitRequestAPI.as_view(), name='api_home_visit'),
 ]

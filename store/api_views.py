@@ -4,10 +4,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.contrib.auth.models import User
-from .models import Product, Cart, Wishlist, Order, OrderItem
+from .models import Product, Cart, Wishlist, Order, OrderItem, HomeVisitRequest
 from .serializers import (
     ProductSerializer, CartSerializer, WishlistSerializer, 
-    OrderSerializer, UserSerializer
+    OrderSerializer, UserSerializer, HomeVisitRequestSerializer
 )
 import uuid
 
@@ -296,3 +296,8 @@ class UserProfileAPI(APIView):
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
+
+class HomeVisitRequestAPI(generics.CreateAPIView):
+    queryset = HomeVisitRequest.objects.all()
+    serializer_class = HomeVisitRequestSerializer
+    permission_classes = [permissions.AllowAny]

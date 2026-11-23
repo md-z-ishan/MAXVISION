@@ -12,6 +12,8 @@ import Orders from './pages/Orders';
 import Wishlist from './pages/Wishlist';
 import Stores from './pages/Stores';
 import VirtualTryOn from './pages/VirtualTryOn';
+import SpecialPower from './pages/SpecialPower';
+import TryAtHome from './pages/TryAtHome';
 import { useDispatch } from 'react-redux';
 import axios from './api/axios';
 import { setUser } from './redux/authSlice';
@@ -48,6 +50,8 @@ function App() {
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/stores" element={<Stores />} />
         <Route path="/try-on" element={<VirtualTryOn />} />
+        <Route path="/special-power" element={<SpecialPower />} />
+        <Route path="/try-at-home" element={<TryAtHome />} />
       </Routes>
     </MainLayout>
   );

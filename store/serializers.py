@@ -1,6 +1,12 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Product, Prescription, UserProfile, Cart, Wishlist, Order, OrderItem
+from .models import Product, Prescription, UserProfile, Cart, Wishlist, Order, OrderItem, HomeVisitRequest
+
+class HomeVisitRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HomeVisitRequest
+        fields = ['id', 'name', 'phone', 'address', 'preferred_date', 'status', 'notes', 'created_at']
+        read_only_fields = ['status', 'created_at']
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
