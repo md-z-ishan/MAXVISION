@@ -80,48 +80,52 @@ const StoreCard = ({ store, index }) => {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className={`
-        relative bg-white rounded-2xl border-2 p-6 flex flex-col gap-4 transition-all duration-300
+        bg-white rounded-2xl border-2 p-5 sm:p-6 flex flex-col gap-4 transition-all duration-300
         ${store.clickable
-          ? 'border-blue-200 hover:border-blue-500 hover:shadow-2xl cursor-pointer hover:-translate-y-1'
-          : 'border-gray-100 opacity-70 cursor-not-allowed'
+          ? 'border-gray-200 hover:border-secondary hover:shadow-xl cursor-pointer hover:-translate-y-0.5'
+          : 'border-gray-100 opacity-75 cursor-not-allowed'
         }
       `}
     >
-      {/* Tag badge */}
-      <span className={`absolute top-4 right-4 text-xs font-bold px-3 py-1 rounded-full ${store.tagColor}`}>
-        {store.tag}
-      </span>
-
-      {/* Icon + Name */}
-      <div className="flex items-center gap-3">
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-xl
-          ${store.clickable ? 'bg-blue-600' : 'bg-gray-400'}`}>
-          <FaStore />
+      {/* Header: Store Info & Status Badge (Clean flex layout with zero overlap) */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white text-lg shrink-0
+            ${store.clickable ? 'bg-secondary' : 'bg-gray-400'}`}>
+            <FaStore />
+          </div>
+          <div>
+            <h3 className="font-bold text-base md:text-lg text-primary leading-tight">{store.name}</h3>
+            <p className="text-xs text-gray-400 font-medium">MAXVISION Optical</p>
+          </div>
         </div>
-        <div>
-          <h3 className="font-bold text-lg text-gray-900 leading-tight">{store.name}</h3>
-          <p className="text-xs text-gray-400 font-medium">MAXVISION Optical</p>
-        </div>
+        <span className={`text-[11px] font-bold px-3 py-1 rounded-full shrink-0 whitespace-nowrap ${store.tagColor}`}>
+          {store.tag}
+        </span>
       </div>
 
       {/* Address */}
       <div className="flex items-start gap-3 text-gray-600">
         <FaMapMarkerAlt className="text-red-500 mt-1 flex-shrink-0" />
-        <span className="text-sm leading-relaxed">{store.address}</span>
+        <span className="text-xs sm:text-sm leading-relaxed">{store.address}</span>
       </div>
 
       {/* Timings */}
       <div className="flex items-center gap-3 text-gray-600">
-        <FaClock className="text-blue-500 flex-shrink-0" />
-        <span className="text-sm">{store.timings}</span>
+        <FaClock className="text-secondary flex-shrink-0" />
+        <span className="text-xs sm:text-sm">{store.timings}</span>
       </div>
 
       {/* Phone */}
       <div className="flex items-center gap-3 text-gray-600">
-        <FaPhone className="text-green-500 flex-shrink-0" />
-        <span className="text-sm font-medium">
+        <FaPhone className="text-emerald-600 flex-shrink-0" />
+        <span className="text-xs sm:text-sm font-medium">
           {store.phone !== 'Coming Soon'
-            ? <a href={`tel:${store.phone}`} onClick={e => e.stopPropagation()} className="hover:underline text-blue-600">{store.phone}</a>
+            ? <>
+                <a href="tel:7485067874" onClick={e => e.stopPropagation()} className="hover:underline text-secondary font-bold">7485067874</a>
+                <span className="mx-1 text-gray-300">|</span>
+                <a href="tel:7033353140" onClick={e => e.stopPropagation()} className="hover:underline text-secondary font-bold">7033353140</a>
+              </>
             : <span className="text-gray-400">Coming Soon</span>
           }
         </span>
@@ -129,13 +133,13 @@ const StoreCard = ({ store, index }) => {
 
       {/* CTA Button */}
       {store.clickable ? (
-        <div className={`mt-2 flex items-center gap-2 justify-center w-full py-2.5 rounded-xl font-bold text-sm transition-all duration-200
-          ${hovered ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600 border border-blue-200'}`}>
+        <div className={`mt-2 flex items-center gap-2 justify-center w-full py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200
+          ${hovered ? 'bg-secondary text-white' : 'bg-secondary/10 text-secondary border border-secondary/20'}`}>
           <FaDirections className="text-base" />
           Get Directions on Google Maps
         </div>
       ) : (
-        <div className="mt-2 flex items-center justify-center w-full py-2.5 rounded-xl font-bold text-sm bg-gray-50 text-gray-400 border border-gray-200">
+        <div className="mt-2 flex items-center justify-center w-full py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-gray-50 text-gray-400 border border-gray-200">
           🔒 &nbsp;Location Coming Soon
         </div>
       )}
