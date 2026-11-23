@@ -76,9 +76,10 @@ const Wishlist = () => {
               {/* Remove button */}
               <button 
                 onClick={() => removeFromWishlist(product.id)}
-                className="absolute top-4 right-4 z-10 p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm hover:scale-110 transition-transform text-red-500 hover:text-red-600 focus:outline-none"
+                className="absolute top-4 right-4 z-10 w-11 h-11 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:scale-110 transition-transform text-red-500 hover:text-red-600 focus:outline-none"
+                aria-label="Remove from wishlist"
               >
-                <FaTrash size={14} />
+                <FaTrash size={16} />
               </button>
 
               {/* Image */}
@@ -106,7 +107,7 @@ const Wishlist = () => {
                     <span className="text-xs text-gray-400 line-through ml-2">₹{product.price}</span>
                   )}
                 </div>
-                <Link to={`/product/${product.id}`} className="bg-secondary text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-teal-600 transition-colors">
+                <Link to={`/product/${product.id}`} className="bg-secondary text-white px-4 py-2 min-h-[44px] flex items-center justify-center rounded text-xs font-bold hover:bg-teal-600 transition-colors">
                   Details
                 </Link>
               </div>

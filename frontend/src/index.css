@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer base {
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+  }
   body {
     @apply bg-white text-[#333] font-sans antialiased tracking-tight;
   }

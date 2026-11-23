@@ -95,14 +95,15 @@ const Cart = () => {
                 </div>
                 
                 <div className="flex justify-between items-center mt-2">
-                  <div className="flex items-center border border-gray-300 rounded">
-                    <button onClick={() => updateQuantity(item.id, 'decrease')} className="px-3 py-1 hover:bg-gray-100">-</button>
-                    <span className="px-3 py-1 border-x border-gray-300">{item.quantity}</span>
+                  <div className="flex items-center border border-gray-300 rounded overflow-hidden">
+                    <button onClick={() => updateQuantity(item.id, 'decrease')} className="w-11 h-11 flex items-center justify-center hover:bg-gray-100 font-bold text-lg select-none" aria-label="Decrease quantity">-</button>
+                    <span className="w-11 h-11 flex items-center justify-center border-x border-gray-300 font-semibold">{item.quantity}</span>
                     <button 
                       disabled={item.quantity >= item.product.stock_quantity} 
                       onClick={() => updateQuantity(item.id, 'increase')} 
-                      className={`px-3 py-1 ${item.quantity >= item.product.stock_quantity ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+                      className={`w-11 h-11 flex items-center justify-center font-bold text-lg select-none ${item.quantity >= item.product.stock_quantity ? 'opacity-40 cursor-not-allowed bg-gray-50' : 'hover:bg-gray-100'}`}
                       title={item.quantity >= item.product.stock_quantity ? 'Max stock reached' : ''}
+                      aria-label="Increase quantity"
                     >
                       +
                     </button>
