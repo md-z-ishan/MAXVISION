@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FaCamera, FaDownload, FaUpload, FaCheck, FaTimes,
@@ -231,6 +232,9 @@ const prepareTransparentGlasses = (src) => {
 };
 
 const VirtualTryOn = () => {
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const isStaff = isAuthenticated && Boolean(user?.is_staff || user?.is_superuser);
+
   // ── States ──
   const [framesList, setFramesList] = useState(() => {
     try {
@@ -753,18 +757,20 @@ const VirtualTryOn = () => {
           <div className="lg:col-span-5 flex flex-col gap-4">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
 
-              {/* Owner Action: Add Glasses Image Button */}
-              <div className="p-4 bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border-b border-gray-200">
-                <button
-                  onClick={() => setShowAddModal(true)}
-                  className="w-full flex items-center justify-center gap-2 bg-blue-700 hover:bg-blue-800 active:scale-[0.99] text-white font-bold py-3.5 px-4 rounded-xl shadow-md shadow-blue-700/20 transition-all text-sm"
-                >
-                  <FaPlus className="text-xs" /> Owner Studio: Add Glasses Image
-                </button>
-                <p className="text-[11px] text-gray-500 text-center mt-2 font-medium">
-                  Add custom glasses photos to display and try on live
-                </p>
-              </div>
+              {/* Owner Action: Add Glasses Image Button (Staff Only) */}
+              {isStaff && (
+                <div className="p-4 bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border-b border-gray-200">
+                  <button
+                    onClick={() => setShowAddModal(true)}
+                    className="w-full flex items-center justify-center gap-2 bg-blue-700 hover:bg-blue-800 active:scale-[0.99] text-white font-bold py-3.5 px-4 rounded-xl shadow-md shadow-blue-700/20 transition-all text-sm"
+                  >
+                    <FaPlus className="text-xs" /> Owner Studio: Add Glasses Image
+                  </button>
+                  <p className="text-[11px] text-gray-500 text-center mt-2 font-medium">
+                    Add custom glasses photos to display and try on live
+                  </p>
+                </div>
+              )}
 
               {/* Category Filter Tabs */}
               <div className="flex border-b border-gray-200 bg-gray-50">
@@ -1111,9 +1117,9 @@ const VirtualTryOn = () => {
         </div>
       </div>
 
-      {/* ════ OWNER MODAL: Add New Glasses Image ════ */}
+      {/* ════ OWNER MODAL: Add New Glasses Image (Staff Only) ════ */}
       <AnimatePresence>
-        {showAddModal && (
+        {isStaff && showAddModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
