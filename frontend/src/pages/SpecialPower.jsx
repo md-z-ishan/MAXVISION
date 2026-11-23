@@ -106,3 +106,4 @@ const SpecialPower = () => {
 };
 
 export default SpecialPower;
+
