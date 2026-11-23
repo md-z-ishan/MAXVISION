@@ -1,0 +1,27 @@
+[
+  {
+    "test": "Backend API Products",
+    "status": "PASS",
+    "details": "Status 200"
+  },
+  {
+    "test": "Django Admin Login",
+    "status": "PASS",
+    "details": "URL: http://127.0.0.1:8000/admin/"
+  },
+  {
+    "test": "Frontend Home Page",
+    "status": "FAIL",
+    "details": "Navigation timeout of 15000 ms exceeded"
+  },
+  {
+    "test": "Frontend Products Catalog",
+    "status": "FAIL",
+    "details": "Navigation timeout of 15000 ms exceeded"
+  },
+  {
+    "test": "Ranchi Store Locator",
+    "status": "FAIL",
+    "details": "Navigation timeout of 15000 ms exceeded"
+  }
+]

@@ -44,6 +44,23 @@ class Product(models.Model):
     image = models.ImageField(upload_to='products/', null=True, blank=True)
     image_url = models.URLField(max_length=500, null=True, blank=True)
     
+    # Contact lenses specific attributes (additive)
+    LENS_TYPE_CHOICES = [
+        ('spherical', 'Spherical'),
+        ('toric', 'Toric'),
+        ('multifocal', 'Multifocal'),
+        ('colored', 'Colored'),
+    ]
+    WEAR_DURATION_CHOICES = [
+        ('daily', 'Daily'),
+        ('monthly', 'Monthly'),
+        ('yearly', 'Yearly'),
+    ]
+    lens_type = models.CharField(max_length=50, blank=True, null=True, choices=LENS_TYPE_CHOICES)
+    wear_duration = models.CharField(max_length=50, blank=True, null=True, choices=WEAR_DURATION_CHOICES)
+    pack_size = models.CharField(max_length=50, blank=True, null=True)
+    power_required = models.BooleanField(default=False)
+
     @property
     def discounted_price(self):
         return self.price * (1 - self.discount_percentage / 100)

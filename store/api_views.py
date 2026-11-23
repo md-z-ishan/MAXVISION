@@ -1,4 +1,5 @@
 from rest_framework import viewsets, generics, permissions, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
@@ -17,26 +18,79 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        query = self.request.query_params.get('q')
+        query = self.request.query_params.get('q') or self.request.query_params.get('search')
         category = self.request.query_params.get('category')
         shape = self.request.query_params.get('shape')
         size = self.request.query_params.get('size')
         color = self.request.query_params.get('color')
         brand = self.request.query_params.get('brand')
+        lens_type = self.request.query_params.get('lens_type')
+        wear_duration = self.request.query_params.get('wear_duration')
+        min_price = self.request.query_params.get('min_price')
+        max_price = self.request.query_params.get('max_price')
+        ordering = self.request.query_params.get('ordering') or self.request.query_params.get('sort')
 
         if query:
             queryset = queryset.filter(name__icontains=query)
         if category:
-            queryset = queryset.filter(category=category)
+            cat_norm = category.strip().lower()
+            if cat_norm in ['contacts', 'contact', 'contact-lenses', 'contact_lens']:
+                cat_norm = 'contact_lenses'
+            queryset = queryset.filter(category__iexact=cat_norm)
         if shape:
-            queryset = queryset.filter(frame_shape=shape)
+            queryset = queryset.filter(frame_shape__iexact=shape)
         if size:
-            queryset = queryset.filter(frame_size=size)
+            queryset = queryset.filter(frame_size__iexact=size)
         if color:
             queryset = queryset.filter(frame_color__icontains=color)
         if brand:
             queryset = queryset.filter(brand__icontains=brand)
+        if lens_type:
+            queryset = queryset.filter(lens_type__iexact=lens_type)
+        if wear_duration:
+            queryset = queryset.filter(wear_duration__iexact=wear_duration)
+        if min_price:
+            try:
+                queryset = queryset.filter(price__gte=float(min_price))
+            except (ValueError, TypeError):
+                pass
+        if max_price:
+            try:
+                queryset = queryset.filter(price__lte=float(max_price))
+            except (ValueError, TypeError):
+                pass
+
+        if ordering:
+            ord_norm = ordering.strip().lower()
+            if ord_norm in ['price_low', 'price_asc', 'price-low-to-high']:
+                queryset = queryset.order_by('price')
+            elif ord_norm in ['price_high', 'price_desc', 'price-high-to-low']:
+                queryset = queryset.order_by('-price')
+            elif ord_norm in ['newest', 'new']:
+                queryset = queryset.order_by('-id')
+            elif ord_norm in ['discount', 'discount_desc']:
+                queryset = queryset.order_by('-discount_percentage')
+            elif ord_norm == 'recommended':
+                queryset = queryset.order_by('id')
+
         return queryset
+
+    @action(detail=False, methods=['get'])
+    def filter_options(self, request):
+        categories = list(Product.objects.values_list('category', flat=True).distinct())
+        brands = list(Product.objects.exclude(brand__isnull=True).exclude(brand='').values_list('brand', flat=True).distinct())
+        shapes = list(Product.objects.exclude(frame_shape__isnull=True).exclude(frame_shape='none').values_list('frame_shape', flat=True).distinct())
+        sizes = list(Product.objects.exclude(frame_size__isnull=True).exclude(frame_size='none').values_list('frame_size', flat=True).distinct())
+        lens_types = list(Product.objects.exclude(lens_type__isnull=True).exclude(lens_type='').values_list('lens_type', flat=True).distinct())
+        wear_durations = list(Product.objects.exclude(wear_duration__isnull=True).exclude(wear_duration='').values_list('wear_duration', flat=True).distinct())
+        return Response({
+            'categories': [c for c in categories if c],
+            'brands': sorted([b for b in brands if b]),
+            'shapes': [s for s in shapes if s],
+            'sizes': [s for s in sizes if s],
+            'lens_types': [lt for lt in lens_types if lt],
+            'wear_durations': [wd for wd in wear_durations if wd],
+        })
 
 # -- CART VIEWS --
 class CartViewSet(viewsets.ModelViewSet):
