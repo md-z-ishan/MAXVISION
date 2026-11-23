@@ -46,6 +46,35 @@ class CartViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Cart.objects.filter(user=self.request.user)
 
+    def perform_create(self, serializer):
+        product_id = self.request.data.get('product_id')
+        lens_package = self.request.data.get('lens_package', 'frame_only')
+
+        try:
+            product = Product.objects.get(pk=product_id)
+        except Product.DoesNotExist:
+            raise serializers.ValidationError({"error": "Product not found"})
+
+        if product.stock_quantity <= 0:
+            raise serializers.ValidationError({"error": f"'{product.name}' is currently out of stock."})
+
+        cart_item = Cart.objects.filter(user=self.request.user, product_id=product_id, lens_package=lens_package).first()
+        if cart_item:
+            if cart_item.quantity + 1 > product.stock_quantity:
+                raise serializers.ValidationError({"error": f"Cannot add more. Only {product.stock_quantity} available in stock."})
+            cart_item.quantity += 1
+            cart_item.save()
+            return cart_item
+        else:
+            lens_price = 0.0
+            if lens_package == 'single_vision':
+                lens_price = 500.0
+            elif lens_package == 'bifocal':
+                lens_price = 1500.0
+            elif lens_package == 'zero_power':
+                lens_price = 300.0
+            serializer.save(user=self.request.user, lens_price=lens_price)
+
     def create(self, request, *args, **kwargs):
         product_id = request.data.get('product_id')
         lens_package = request.data.get('lens_package', 'frame_only')
@@ -71,19 +100,12 @@ class CartViewSet(viewsets.ModelViewSet):
             cart_item.quantity += 1
             cart_item.save()
             return Response(CartSerializer(cart_item).data, status=status.HTTP_200_OK)
-        else:
-            lens_price = 0.0
-            if lens_package == 'single_vision':
-                lens_price = 500.0
-            elif lens_package == 'bifocal':
-                lens_price = 1500.0
-            elif lens_package == 'zero_power':
-                lens_price = 300.0
 
-            serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save(user=request.user, lens_price=lens_price)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 class UpdateCartQuantity(APIView):
     permission_classes = [permissions.IsAuthenticated]
