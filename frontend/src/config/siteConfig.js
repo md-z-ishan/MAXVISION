@@ -8,7 +8,7 @@ export const siteConfig = {
   whatsappDefaultMsg: "Hi MAXVISION team, I have an inquiry regarding eyeglasses and optical services.",
   address: "Shop 4, Sheetal Tower, Taxi Stand, Main Road, Ranchi, Jharkhand - 834001",
   pickupAddress: "Shop 4, Sheetal Tower, Taxi Stand, Main Road, Ranchi, Jharkhand - 834001",
-  upiId: "maxvision@upi",
+  upiId: "7485067874@ptyes",
   deliveryCharge: 0,
   hours: "Monday - Sunday: 10:00 AM - 8:30 PM",
   socials: {
