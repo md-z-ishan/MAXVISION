@@ -65,3 +65,99 @@ git branch -D feature/checkout-core
 cp backups/db.sqlite3 db.sqlite3
 ```
 
+---
+
+## [Full Build] Stages 1 to 7 Implementation
+**Date:** 2026-11-23 / 2026-11-24  
+**Branch:** `feature/full-build` (Merged with Phase 1, strictly local commits)  
+**Safety Backup Tag:** `backup-before-build`  
+**Backups:** `backups/db.sqlite3_before_build` & `backups/media_before_build/`  
+
+---
+
+### Stage 1 (G1): Categories + Contact Lenses Support
+* **Navbar Bug Fixed:** Eyeglasses aur Contacts par "No products found" bug trace kiya. Root cause: `category` param casing aur `contacts` slug mismatch tha. `ProductViewSet` me `category__iexact` filter lagaya aur `contacts` ko `contact_lenses` se map kiya. Case-insensitive search `q` aur `search` bhi add kiya.
+* **Additive Model Fields:** `Product` model me 4 naye additive fields jode: `lens_type`, `wear_duration`, `pack_size`, `power_required`. Migration `0006_product_lens_type_product_pack_size_and_more.py` create aur apply hui.
+* **Backend Ordering & Dynamic Filters:** Added ordering (`recommended`, `price_low`, `price_high`, `newest`, `discount`) aur dynamic filter options endpoint `/api/products/filter_options/`.
+* **Category-Aware Listing Page:** `Products.jsx` ko category-aware banaya: Contact Lenses par Shape/Size filter chhip jaate hain, lens type/wear duration aate hain; breadcrumbs, dynamic counts, mobile filter drawer, image fallbacks aur zero layout shift ke sath.
+* **Local Test Data:** Admin se 3 Contact Lens test products banaye (`[TEST]` prefix ke sath).
+* **Commit:** `1a27ab3`
+
+---
+
+### Stage 2 (G2): Header Navigation, Search & Doorstep Booking
+* **Search Bar & Navigation:** `Navbar.jsx` me search bar fix kiya: Enter key aur search icon par `/products?q=...` par navigate hota hai with Clear (X) button. Mobile hamburger menu responsive aur smooth hai.
+* **Special Power Info Page:** `frontend/src/pages/SpecialPower.jsx` banaya jisme high-index, astigmatism/CYL, progressive lenses ki authentic jaankari, call aur WhatsApp buttons hain.
+* **Try @ Home Service:** `HomeVisitRequest` model (`0007_homevisitrequest.py`), admin, serializer aur `/api/home-visit/` endpoint add kiya. `TryAtHome.jsx` par clean doorstep eye checkup booking form integrate kiya.
+* **Commit:** `ba74f22`
+
+---
+
+### Stage 3 (G3): Footer Pages & Centralized Config
+* **Central Config:** `frontend/src/config/siteConfig.js` me store details, authentic Ranchi address (`Shop 4, Sheetal Tower, Taxi Stand, Main Road, Ranchi`), phone numbers (`7485067874`, `7033353140`), UPI ID (`maxvision@upi`) ko centralize kiya.
+* **8 Authentic Footer Pages:**
+  1. `BuyingGuide.jsx` (Lenses & frame guide)
+  2. `FrameSize.jsx` (Frame size measurements)
+  3. `WeAreHiring.jsx` (Careers in Ranchi)
+  4. `OurStory.jsx` (MaxVision optical legacy)
+  5. `ContactUs.jsx` (Direct call, WhatsApp, store timings)
+  6. `FAQs.jsx` (Genuine customer FAQs)
+  7. `ReturnsExchanges.jsx` (Exchange policy)
+  8. `Cancellation.jsx` (Order cancellation policy)
+* **Floating WhatsApp Button:** Universal floating button `FloatingWhatsApp.jsx` banaya jo mobile par koi CTA button block nahi karta (`wa.me/917485067874`).
+* **Commit:** `e95a752`
+
+---
+
+### Stage 4 (G4): Stores Page Overlap Fix
+* **Badge Overlap Fixed:** `Stores.jsx` me "Flagship Store" / "Opening Soon" badge card title ke sath overlap ho raha tha. Flexbox responsive layout se wrap fix kiya, mobile aur PC par title poora saaf dikhta hai.
+* **Store Contact:** Ranchi store ke dono numbers (`7485067874` aur `7033353140`) display kiye. Existing customer proof count (2500+) preserve kiya gaya.
+* **Commit:** `d03e07d`
+
+---
+
+### Stage 5 (G5): Try-On Staff Permission Guard
+* **Staff Access Only:** `VirtualTryOn.jsx` me "Owner Studio: Add Glasses Image" button aur glasses image upload modal ko `isStaff` (`user?.is_staff || user?.is_superuser`) ke pichhe secure kiya. Normal customers ko studio controls nahi dikhte.
+* **Commit:** `014c37f`
+
+---
+
+### Stage 6 (G6): Responsive Polish
+* **Universal Viewport Rules:** `frontend/src/index.css` me `html, body { overflow-x: hidden; width: 100%; }` enforce kiya.
+* **44px Touch Targets:** `Cart.jsx` me quantity increase/decrease buttons ko `w-11 h-11` (44px) banaya. `ProductDetails.jsx`, `Wishlist.jsx` me action buttons ko `min-h-[44px]` touch target compliant kiya.
+* **Build Stability:** `.browserslistrc` add karke build pipeline optimize kiya.
+* **Commit:** `eb13bd3`
+
+---
+
+### Stage 7 (Phase 2): Checkout Features (Payment, Prescription, Delivery)
+* **Additive Order Fields & History:**
+  * `Order` model me `payment_method` (`COD`, `UPI`), `payment_status` (`UNPAID`, `PENDING_VERIFICATION`, `PAID`), `utr_number`, `delivery_type` (`DELIVERY`, `PICKUP`), `delivery_charge` (default 0.0), aur `prescription` foreign key add kiya.
+  * Additive model `OrderStatusHistory` add kiya jo har status change aur note record karta hai.
+  * Migration `0008_order_delivery_charge_order_delivery_type_and_more.py` apply hui.
+* **Backend Validation:**
+  * Manual prescription SPH/CYL -10 to +10 in 0.25 steps.
+  * CYL present hone par AXIS (1-180°) compulsory.
+  * Pupillary distance (PD) 50-80mm.
+  * UPI payment me 12-digit UTR compulsory.
+  * Free store pickup at Ranchi store (`Shop 4, Sheetal Tower...`).
+* **Admin Features:**
+  * `OrderStatusHistoryInline` order detail ke andar show hota hai.
+  * Order list me payment method, payment status, delivery type aur UTR number display hote hain.
+  * Admin Action: `Mark selected orders as Paid` (payment status ko PAID karta hai aur history log karta hai).
+* **Frontend Checkout:**
+  * Step-by-step layout: Delivery option (Home Delivery vs Store Pickup), Contact, Prescription (None / File / Manual OD-OS table), Payment (COD vs UPI with QR/VPA and UTR input).
+  * Out-of-stock server errors and validation errors clean alerts ke sath display hote hain.
+  * `Orders.jsx` me order list par payment method, delivery mode aur submitted prescription power display hoti hai.
+* **Commit:** `4335a6b`
+
+---
+
+### 📋 Store Owner Se Confirm Karne Wali Cheezein (Pending Confirmation)
+1. **Actual UPI ID / QR:** Abhi placeholder `maxvision@upi` use kiya hai. Store owner se unka official UPI ID / merchant QR lena hai.
+2. **Social Media URLs:** Facebook, Instagram, Twitter, YouTube links `siteConfig.js` me placeholder hain. Owner se official handles lene hain.
+3. **Exact Return / Exchange Days Window:** Policy pages me generic safe language rakhi hai, bina kisi fake "7 din ya 14 din" claim ke. Owner se actual exchange timeline confirm karni hai.
+4. **Delivery Charge Policy:** Abhi Ranchi aur pan-India free delivery (`0.0`) set hai. Agar kisi specific pincode ya order value ke neeche delivery charge lagana hai to owner se confirm karein.
+5. **Upcoming Store Locations:** `Stores.jsx` me opening soon locations (Dhanbad, Jamshedpur etc.) verify karwani hain.
+
+
