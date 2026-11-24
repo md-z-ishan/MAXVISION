@@ -4,10 +4,15 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.contrib.auth.models import User
-from .models import Product, Cart, Wishlist, Order, OrderItem, HomeVisitRequest
+from django.conf import settings
+from .models import (
+    Product, Cart, Wishlist, Order, OrderItem,
+    HomeVisitRequest, Prescription, OrderStatusHistory
+)
 from .serializers import (
     ProductSerializer, CartSerializer, WishlistSerializer, 
-    OrderSerializer, UserSerializer, HomeVisitRequestSerializer
+    OrderSerializer, UserSerializer, HomeVisitRequestSerializer,
+    PrescriptionSerializer
 )
 import uuid
 
@@ -205,26 +210,147 @@ class ToggleWishlistAPI(APIView):
             return Response({"status": "added"})
 
 # -- ORDER / CHECKOUT VIEWS --
+def validate_power_step(val_name, val, min_val=-10.0, max_val=10.0, step=0.25):
+    if val is None or str(val).strip() == '':
+        return 0.0, None
+    try:
+        fval = round(float(val), 2)
+    except (TypeError, ValueError):
+        return None, f"Invalid value for {val_name}. Must be a valid number."
+    if fval < min_val or fval > max_val:
+        return None, f"{val_name} ({fval}) must be between {min_val} and {max_val}."
+    rem = round((fval * 100) % 25, 2)
+    if rem != 0.0 and rem != 25.0:
+        return None, f"{val_name} ({fval}) must be in steps of 0.25 (e.g., -0.25, -0.50, +1.25)."
+    return fval, None
+
+def validate_axis_val(val_name, val, cyl_val=0.0):
+    if val is None or str(val).strip() == '':
+        if abs(cyl_val) > 0.0001:
+            return None, f"{val_name} is required between 1° and 180° when Cylinder (CYL) is specified."
+        return 0, None
+    try:
+        ival = int(val)
+    except (TypeError, ValueError):
+        return None, f"Invalid value for {val_name}. Must be an integer."
+    if ival < 0 or ival > 180:
+        return None, f"{val_name} ({ival}) must be between 0 and 180 degrees."
+    if abs(cyl_val) > 0.0001 and ival == 0:
+        return None, f"{val_name} cannot be 0° when Cylinder (CYL) is specified (must be 1° to 180°)."
+    return ival, None
+
+def validate_pd_val(val):
+    if val is None or str(val).strip() == '':
+        return None, None
+    try:
+        fval = round(float(val), 1)
+    except (TypeError, ValueError):
+        return None, "Invalid Pupillary Distance (PD). Must be a valid number."
+    if fval < 50.0 or fval > 80.0:
+        return None, f"Pupillary Distance (PD: {fval}mm) must be between 50 and 80 mm."
+    return fval, None
+
 class CheckoutAPI(APIView):
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def post(self, request):
-        address = request.data.get('address')
-        mobile = request.data.get('mobile')
+        address = request.data.get('address', '')
+        if isinstance(address, str):
+            address = address.strip()
+        mobile = request.data.get('mobile', '')
+        if isinstance(mobile, str):
+            mobile = mobile.strip()
         prescription_file = request.FILES.get('prescription_file')
+
+        payment_method = str(request.data.get('payment_method', 'COD')).upper().strip()
+        if payment_method not in ['COD', 'UPI']:
+            payment_method = 'COD'
+        utr_number = str(request.data.get('utr_number', '')).strip()
+
+        delivery_type = str(request.data.get('delivery_type', 'DELIVERY')).upper().strip()
+        if delivery_type not in ['DELIVERY', 'PICKUP']:
+            delivery_type = 'DELIVERY'
+
+        prescription_option = str(request.data.get('prescription_option', 'none')).lower().strip()
+
+        if not mobile:
+            return Response({"error": "Mobile number is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if delivery_type == 'PICKUP':
+            pickup_address = "Store Pickup: Shop 4, Sheetal Tower, Taxi Stand, Main Road, Ranchi"
+            address = address or pickup_address
+            delivery_charge = 0.0
+        else:
+            if not address:
+                return Response({"error": "Delivery address is required for Home Delivery."}, status=status.HTTP_400_BAD_REQUEST)
+            delivery_charge = float(getattr(settings, 'DELIVERY_CHARGE', 0.0))
+
+        if payment_method == 'UPI':
+            if not utr_number or len(utr_number) < 6:
+                return Response(
+                    {"error": "Please enter a valid 12-digit UPI Reference / UTR Number for payment verification."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            payment_status = 'PENDING_VERIFICATION'
+        else:
+            payment_status = 'UNPAID'
+            utr_number = None
+
+        prescription_obj = None
+        if prescription_option == 'manual':
+            od_sph, err = validate_power_step('Right Eye (OD) SPH', request.data.get('od_sph', 0))
+            if err: return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
+            
+            od_cyl, err = validate_power_step('Right Eye (OD) CYL', request.data.get('od_cyl', 0))
+            if err: return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
+            
+            od_axis, err = validate_axis_val('Right Eye (OD) AXIS', request.data.get('od_axis'), od_cyl)
+            if err: return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
+            
+            od_add, err = validate_power_step('Right Eye (OD) ADD', request.data.get('od_add', 0), min_val=0.0, max_val=4.0)
+            if err: return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
+
+            os_sph, err = validate_power_step('Left Eye (OS) SPH', request.data.get('os_sph', 0))
+            if err: return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
+            
+            os_cyl, err = validate_power_step('Left Eye (OS) CYL', request.data.get('os_cyl', 0))
+            if err: return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
+            
+            os_axis, err = validate_axis_val('Left Eye (OS) AXIS', request.data.get('os_axis'), os_cyl)
+            if err: return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
+            
+            os_add, err = validate_power_step('Left Eye (OS) ADD', request.data.get('os_add', 0), min_val=0.0, max_val=4.0)
+            if err: return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
+
+            pd_val, err = validate_pd_val(request.data.get('pd'))
+            if err: return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
+
+            prescription_obj = Prescription.objects.create(
+                user=request.user,
+                name=f"Prescription by {request.user.username}",
+                od_sph=od_sph,
+                od_cyl=od_cyl,
+                od_axis=od_axis,
+                od_add=od_add,
+                os_sph=os_sph,
+                os_cyl=os_cyl,
+                os_axis=os_axis,
+                os_add=os_add,
+                pd=pd_val
+            )
+        elif prescription_option == 'none':
+            prescription_file = None
 
         from django.db import transaction
         from django.db.models import F
 
         with transaction.atomic():
-            # Lock cart items with pre-joined product details to prevent queries during rollback
             cart_items = Cart.objects.select_related('product').select_for_update().filter(user=request.user)
 
             if not cart_items.exists():
                 return Response({"error": "Cart is empty"}, status=status.HTTP_400_BAD_REQUEST)
 
-            # 1. Atomic conditional stock deduction for every item in cart
             for item in cart_items:
                 rows_updated = Product.objects.filter(
                     pk=item.product_id,
@@ -238,20 +364,24 @@ class CheckoutAPI(APIView):
                         status=status.HTTP_400_BAD_REQUEST
                     )
 
-            # 2. Total amount computed strictly from server DB prices (ignoring any client value)
-            total = sum(item.subtotal() for item in cart_items)
+            items_total = sum(item.subtotal() for item in cart_items)
+            total = round(items_total + delivery_charge, 2)
 
-            # 3. Create Order
             order = Order.objects.create(
                 user=request.user,
                 address=address,
                 mobile=mobile,
                 total_amount=total,
                 status="Pending",
+                payment_method=payment_method,
+                payment_status=payment_status,
+                utr_number=utr_number,
+                delivery_type=delivery_type,
+                delivery_charge=delivery_charge,
+                prescription=prescription_obj,
                 prescription_file=prescription_file
             )
 
-            # 4. Snapshot OrderItems
             for item in cart_items:
                 OrderItem.objects.create(
                     order=order,
@@ -262,13 +392,21 @@ class CheckoutAPI(APIView):
                     lens_price=item.lens_price
                 )
 
-            # 5. Clear cart atomically within the same transaction
+            OrderStatusHistory.objects.create(
+                order=order,
+                status="Pending",
+                notes=f"Order created with {payment_method} ({payment_status}). Delivery: {delivery_type}."
+            )
+
             cart_items.delete()
 
             return Response({
                 "message": "Order placed successfully",
-                "order_id": order.id
+                "order_id": order.id,
+                "payment_status": payment_status,
+                "total_amount": total
             }, status=status.HTTP_201_CREATED)
+
 
 class UserOrdersAPI(generics.ListAPIView):
     serializer_class = OrderSerializer

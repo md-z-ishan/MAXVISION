@@ -147,6 +147,19 @@ class Order(models.Model):
         ('Delivered', 'Delivered'),
         ('Cancelled', 'Cancelled'),
     ]
+    PAYMENT_METHOD_CHOICES = [
+        ('COD', 'Cash on Delivery'),
+        ('UPI', 'UPI Payment'),
+    ]
+    PAYMENT_STATUS_CHOICES = [
+        ('UNPAID', 'Unpaid'),
+        ('PENDING_VERIFICATION', 'Pending Verification'),
+        ('PAID', 'Paid'),
+    ]
+    DELIVERY_TYPE_CHOICES = [
+        ('DELIVERY', 'Home Delivery'),
+        ('PICKUP', 'Store Pickup'),
+    ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     address = models.TextField()
@@ -155,6 +168,12 @@ class Order(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     prescription_file = models.FileField(upload_to='prescriptions/', null=True, blank=True)
     stock_restored = models.BooleanField(default=False)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='COD')
+    payment_status = models.CharField(max_length=30, choices=PAYMENT_STATUS_CHOICES, default='UNPAID')
+    utr_number = models.CharField(max_length=50, blank=True, null=True)
+    delivery_type = models.CharField(max_length=20, choices=DELIVERY_TYPE_CHOICES, default='DELIVERY')
+    delivery_charge = models.FloatField(default=0.0)
+    prescription = models.ForeignKey(Prescription, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -215,3 +234,17 @@ class HomeVisitRequest(models.Model):
 
     def __str__(self):
         return f"Home Visit: {self.name} ({self.phone}) - {self.status}"
+
+
+class OrderStatusHistory(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='status_history')
+    status = models.CharField(max_length=50)
+    notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Order #{self.order_id} - {self.status} at {self.created_at}"
+

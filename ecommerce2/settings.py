@@ -138,3 +138,7 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+# Delivery & Payment Settings
+DELIVERY_CHARGE = 0.0  # Free standard delivery
+UPI_ID = 'maxvision@upi'  # Store UPI VPA (Placeholder for Ranchi flagship store)

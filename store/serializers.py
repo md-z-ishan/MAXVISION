@@ -34,6 +34,11 @@ class WishlistSerializer(serializers.ModelSerializer):
         model = Wishlist
         fields = ['id', 'product', 'product_id']
 
+class PrescriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Prescription
+        fields = ['id', 'name', 'od_sph', 'od_cyl', 'od_axis', 'od_add', 'os_sph', 'os_cyl', 'os_axis', 'os_add', 'pd', 'created_at']
+
 class OrderItemSerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)
     
@@ -43,7 +48,13 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
+    prescription = PrescriptionSerializer(read_only=True)
 
     class Meta:
         model = Order
-        fields = ['id', 'address', 'mobile', 'total_amount', 'status', 'stock_restored', 'prescription_file', 'created_at', 'updated_at', 'items']
+        fields = [
+            'id', 'address', 'mobile', 'total_amount', 'status', 'stock_restored',
+            'payment_method', 'payment_status', 'utr_number', 'delivery_type',
+            'delivery_charge', 'prescription', 'prescription_file', 'created_at', 'updated_at', 'items'
+        ]
+

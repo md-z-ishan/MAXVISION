@@ -121,7 +121,14 @@ const Orders = () => {
                   <span className="font-bold text-primary">₹{order.total_amount}</span>
                 </div>
                 <div>
-                  <span className="block text-xs uppercase text-gray-400 font-semibold">Ship To</span>
+                  <span className="block text-xs uppercase text-gray-400 font-semibold">Payment</span>
+                  <span className="font-semibold text-gray-700 text-xs">
+                    {order.payment_method === 'UPI' ? 'UPI' : 'COD'}
+                    {order.payment_status === 'PAID' ? ' (Paid)' : order.payment_status === 'PENDING_VERIFICATION' ? ' (Verifying)' : ''}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-xs uppercase text-gray-400 font-semibold">{order.delivery_type === 'PICKUP' ? 'Store Pickup' : 'Ship To'}</span>
                   <span className="font-medium truncate block max-w-xs">{order.address}</span>
                 </div>
               </div>
@@ -167,6 +174,25 @@ const Orders = () => {
                   >
                     📄 View Uploaded Prescription
                   </a>
+                </div>
+              )}
+
+              {order.prescription && (
+                <div className="pt-3 mt-2 text-xs border-t border-gray-100 bg-gray-50/70 p-3 rounded-lg">
+                  <span className="text-gray-600 font-bold uppercase block mb-1.5 tracking-wider">Submitted Prescription Power:</span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-[11px] text-gray-700">
+                    <div><strong>OD SPH:</strong> {order.prescription.od_sph > 0 ? `+${order.prescription.od_sph}` : order.prescription.od_sph}</div>
+                    <div><strong>OD CYL:</strong> {order.prescription.od_cyl}</div>
+                    <div><strong>OD AXIS:</strong> {order.prescription.od_axis}°</div>
+                    <div><strong>OD ADD:</strong> {order.prescription.od_add}</div>
+                    <div><strong>OS SPH:</strong> {order.prescription.os_sph > 0 ? `+${order.prescription.os_sph}` : order.prescription.os_sph}</div>
+                    <div><strong>OS CYL:</strong> {order.prescription.os_cyl}</div>
+                    <div><strong>OS AXIS:</strong> {order.prescription.os_axis}°</div>
+                    <div><strong>OS ADD:</strong> {order.prescription.os_add}</div>
+                  </div>
+                  {order.prescription.pd && (
+                    <div className="mt-1.5 text-gray-600 font-medium">PD (Pupillary Distance): {order.prescription.pd} mm</div>
+                  )}
                 </div>
               )}
             </div>
