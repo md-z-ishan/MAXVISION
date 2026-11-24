@@ -4,17 +4,30 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.utils import timezone
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse, FileResponse
 from django.conf import settings
+from django.core.mail import send_mail
 from .models import (
     Product, Cart, Wishlist, Order, OrderItem,
-    HomeVisitRequest, Prescription, OrderStatusHistory
+    HomeVisitRequest, Prescription, OrderStatusHistory,
+    StorePaymentSettings, Address, Invoice, UserProfile
 )
 from .serializers import (
     ProductSerializer, CartSerializer, WishlistSerializer, 
     OrderSerializer, UserSerializer, HomeVisitRequestSerializer,
-    PrescriptionSerializer
+    PrescriptionSerializer, AddressSerializer, StorePaymentSettingsSerializer
 )
+from .utils import render_to_pdf, generate_serial_number, notify_shop
 import uuid
+import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 # -- PRODUCT VIEWS --
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
@@ -251,6 +264,7 @@ def validate_pd_val(val):
     return fval, None
 
 class CheckoutAPI(APIView):
+    throttle_scope = 'checkout'
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
@@ -287,15 +301,27 @@ class CheckoutAPI(APIView):
             delivery_charge = float(getattr(settings, 'DELIVERY_CHARGE', 0.0))
 
         if payment_method == 'UPI':
-            if not utr_number or len(utr_number) < 6:
+            if not utr_number or not re.match(r'^[a-zA-Z0-9]{10,22}$', utr_number):
                 return Response(
-                    {"error": "Please enter a valid 12-digit UPI Reference / UTR Number for payment verification."},
+                    {"error": "Please enter a valid 10 to 22 character alphanumeric UPI Reference / UTR Number."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if Order.objects.filter(utr_number__iexact=utr_number).exists():
+                return Response(
+                    {"error": "This UTR number has already been submitted for another order. Please check and provide your unique transaction UTR number."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             payment_status = 'PENDING_VERIFICATION'
         else:
             payment_status = 'UNPAID'
             utr_number = None
+
+        if prescription_file:
+            if prescription_file.size > 5 * 1024 * 1024:
+                return Response({"error": "Prescription file size exceeds 5 MB limit."}, status=status.HTTP_400_BAD_REQUEST)
+            ext = prescription_file.name.lower().split('.')[-1]
+            if ext not in ['pdf', 'jpg', 'jpeg', 'png']:
+                return Response({"error": "Prescription file must be a valid PDF, JPG, or PNG document."}, status=status.HTTP_400_BAD_REQUEST)
 
         prescription_obj = None
         if prescription_option == 'manual':
@@ -400,6 +426,18 @@ class CheckoutAPI(APIView):
 
             cart_items.delete()
 
+            # Create Invoice record safely
+            try:
+                Invoice.objects.create(
+                    order=order,
+                    serial_number=generate_serial_number()
+                )
+            except Exception as e:
+                logger.error(f"Failed to create invoice record for order #{order.id}: {e}")
+
+            # Notify shop owner via email
+            notify_shop(order)
+
             return Response({
                 "message": "Order placed successfully",
                 "order_id": order.id,
@@ -417,23 +455,233 @@ class UserOrdersAPI(generics.ListAPIView):
 
 # -- AUTH VIEWS --
 class RegisterUserAPI(APIView):
+    throttle_scope = 'auth'
     def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        email = request.data.get('email', '')
-        
+        username = request.data.get('username', '').strip()
+        password = request.data.get('password', '')
+        email = request.data.get('email', '').strip()
+        mobile = request.data.get('mobile', '').strip()
+        first_name = request.data.get('first_name', '').strip()
+
+        if not username or not password:
+            return Response({"error": "Username and password are required."}, status=status.HTTP_400_BAD_REQUEST)
+
         if User.objects.filter(username=username).exists():
             return Response({"error": "Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
-            
-        user = User.objects.create_user(username=username, password=password, email=email)
+
+        if mobile:
+            if not re.match(r'^[6-9]\d{9}$', mobile):
+                return Response(
+                    {"error": "Please enter a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if UserProfile.objects.filter(mobile=mobile).exists():
+                return Response({"error": "An account with this mobile number already exists."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.create_user(username=username, password=password, email=email, first_name=first_name)
+        if mobile:
+            UserProfile.objects.create(user=user, mobile=mobile)
+
         return Response({"message": "User created successfully"}, status=status.HTTP_201_CREATED)
 
 class UserProfileAPI(APIView):
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def get(self, request):
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data)
+        profile = getattr(request.user, 'profile', None)
+        data = UserSerializer(request.user).data
+        data['mobile'] = profile.mobile if profile else ''
+        return Response(data)
+
+    def patch(self, request):
+        user = request.user
+        first_name = request.data.get('first_name')
+        last_name = request.data.get('last_name')
+        email = request.data.get('email')
+        mobile = request.data.get('mobile')
+
+        if first_name is not None:
+            user.first_name = first_name.strip()
+        if last_name is not None:
+            user.last_name = last_name.strip()
+        if email is not None:
+            user.email = email.strip()
+        user.save()
+
+        if mobile is not None:
+            mobile_str = str(mobile).strip()
+            if mobile_str and not re.match(r'^[6-9]\d{9}$', mobile_str):
+                return Response(
+                    {"error": "Please enter a valid 10-digit Indian mobile number starting with 6-9."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.mobile = mobile_str
+            profile.save()
+
+        profile = getattr(user, 'profile', None)
+        data = UserSerializer(user).data
+        data['mobile'] = profile.mobile if profile else ''
+        return Response(data)
+
+class PasswordResetRequestAPI(APIView):
+    throttle_scope = 'auth'
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email', '').strip()
+        if not email:
+            return Response({"error": "Please provide your registered email address."}, status=status.HTTP_400_BAD_REQUEST)
+
+        users = User.objects.filter(email__iexact=email)
+        if users.exists():
+            for user in users:
+                token = default_token_generator.make_token(user)
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                reset_link = f"http://localhost:5173/reset-password/{uid}/{token}/"
+
+                subject = "Password Reset Request - MAXVISION Optical"
+                message = (
+                    f"Hi {user.username},\n\n"
+                    f"You requested a password reset for your MAXVISION Optical account.\n"
+                    f"Click or open the link below to set a new password:\n{reset_link}\n\n"
+                    f"If you did not request this, please ignore this email.\n\n"
+                    f"MAXVISION Optical Team\nRanchi, Jharkhand"
+                )
+                try:
+                    send_mail(subject, message, getattr(settings, 'DEFAULT_FROM_EMAIL', 'support@maxvision.com'), [user.email], fail_silently=True)
+                except Exception as e:
+                    logger.error(f"Error sending password reset email: {e}")
+
+        return Response({
+            "message": "If an account with this email exists, a password reset link has been sent. Please check your inbox or server console."
+        }, status=status.HTTP_200_OK)
+
+class PasswordResetConfirmAPI(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        uidb64 = request.data.get('uid')
+        token = request.data.get('token')
+        new_password = request.data.get('new_password')
+
+        if not uidb64 or not token or not new_password:
+            return Response({"error": "UID, token, and new password are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(new_password) < 6:
+            return Response({"error": "Password must be at least 6 characters long."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response({"error": "Invalid password reset link."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if default_token_generator.check_token(user, token):
+            user.set_password(new_password)
+            user.save()
+            return Response({"message": "Password has been successfully reset. You can now login."}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Password reset token is invalid or has expired."}, status=status.HTTP_400_BAD_REQUEST)
+
+# -- PAYMENT SETTINGS & INVOICE APIS --
+class PaymentSettingsAPI(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        settings_obj = StorePaymentSettings.get_settings()
+        if settings_obj.upi_enabled and settings_obj.qr_image and settings_obj.upi_id:
+            return Response({
+                "upi_enabled": True,
+                "upi_id": settings_obj.upi_id,
+                "display_name": settings_obj.display_name,
+                "qr_image": request.build_absolute_uri(settings_obj.qr_image.url)
+            })
+        return Response({"upi_enabled": False})
+
+class OrderInvoiceAPI(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+        order = get_object_or_404(Order, pk=pk)
+        if order.user != request.user and not request.user.is_staff:
+            return Response({"error": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
+        invoice, _ = Invoice.objects.get_or_create(
+            order=order,
+            defaults={'serial_number': generate_serial_number()}
+        )
+        pdf_buffer = render_to_pdf(None, {'order': order, 'invoice': invoice, 'items': order.items.all()})
+
+        response = HttpResponse(pdf_buffer.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="MAXVISION_Invoice_{order.id}.pdf"'
+        return response
+
+class OrderPrescriptionDownloadAPI(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+        order = get_object_or_404(Order, pk=pk)
+        if order.user != request.user and not request.user.is_staff:
+            return Response({"error": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
+        if not order.prescription_file:
+            return Response({"error": "No prescription document was uploaded for this order."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            return FileResponse(order.prescription_file.open('rb'), content_type='application/octet-stream')
+        except Exception as e:
+            return Response({"error": f"Unable to read file: {e}"}, status=status.HTTP_404_NOT_FOUND)
+
+class AddressViewSet(viewsets.ModelViewSet):
+    serializer_class = AddressSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Address.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class HealthCheckAPI(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        db_status = "connected"
+        try:
+            from django.db import connection
+            connection.ensure_connection()
+        except Exception as e:
+            db_status = f"unreachable: {str(e)}"
+
+        status_code = status.HTTP_200_OK if db_status == "connected" else status.HTTP_503_SERVICE_UNAVAILABLE
+        return Response({
+            "status": "ok" if db_status == "connected" else "degraded",
+            "database": db_status,
+            "service": "MAXVISION Optical API",
+            "time": timezone.now().isoformat()
+        }, status=status_code)
+
+class AdminDashboardStatsAPI(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        from django.db.models import Sum
+        today = timezone.now().date()
+        total_orders = Order.objects.count()
+        today_orders = Order.objects.filter(created_at__date=today).count()
+        pending_orders = Order.objects.filter(status__iexact='Pending').count()
+        total_sales_res = Order.objects.filter(payment_status='PAID').aggregate(total=Sum('total_amount'))
+        total_sales = total_sales_res['total'] or 0.0
+        low_stock_count = Product.objects.filter(stock_quantity__lte=5).count()
+
+        return Response({
+            "total_orders": total_orders,
+            "today_orders": today_orders,
+            "pending_orders": pending_orders,
+            "total_sales": float(total_sales),
+            "low_stock_products": low_stock_count
+        })
 
 class HomeVisitRequestAPI(generics.CreateAPIView):
     queryset = HomeVisitRequest.objects.all()

@@ -174,6 +174,8 @@ class Order(models.Model):
     delivery_type = models.CharField(max_length=20, choices=DELIVERY_TYPE_CHOICES, default='DELIVERY')
     delivery_charge = models.FloatField(default=0.0)
     prescription = models.ForeignKey(Prescription, on_delete=models.SET_NULL, null=True, blank=True)
+    payment_verified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='verified_orders')
+    payment_verified_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -247,4 +249,52 @@ class OrderStatusHistory(models.Model):
 
     def __str__(self):
         return f"Order #{self.order_id} - {self.status} at {self.created_at}"
+
+
+class StorePaymentSettings(models.Model):
+    upi_id = models.CharField(max_length=100, blank=True, null=True, help_text="Store UPI ID / VPA")
+    display_name = models.CharField(max_length=150, default="MAXVISION Optical")
+    qr_image = models.ImageField(upload_to='payment_qr/', blank=True, null=True, help_text="Upload official shop UPI QR Code")
+    upi_enabled = models.BooleanField(default=False, help_text="Enable UPI QR Payment on Checkout")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Store Payment Setting"
+        verbose_name_plural = "Store Payment Settings"
+
+    def __str__(self):
+        return f"Payment Settings (UPI {'Enabled' if self.upi_enabled else 'Disabled'})"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_settings(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+
+class Address(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
+    full_name = models.CharField(max_length=100)
+    mobile = models.CharField(max_length=15)
+    street_address = models.TextField()
+    city = models.CharField(max_length=100, default='Ranchi')
+    state = models.CharField(max_length=100, default='Jharkhand')
+    pincode = models.CharField(max_length=10)
+    is_default = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-is_default', '-created_at']
+
+    def __str__(self):
+        return f"{self.full_name} - {self.street_address[:30]}, {self.city}"
+
+    def save(self, *args, **kwargs):
+        if self.is_default:
+            Address.objects.filter(user=self.user, is_default=True).exclude(pk=self.pk).update(is_default=False)
+        super().save(*args, **kwargs)
+
 

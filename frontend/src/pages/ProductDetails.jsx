@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
 import { motion } from 'framer-motion';
-import { FaCheckCircle, FaStar, FaShippingFast } from 'react-icons/fa';
+import { FaCheckCircle, FaStar, FaShippingFast, FaWhatsapp } from 'react-icons/fa';
 import { useSelector } from 'react-redux';
+import { siteConfig } from '../config/siteConfig';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -177,12 +178,12 @@ const ProductDetails = () => {
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <motion.button 
               whileTap={{ scale: 0.95 }}
               onClick={handleAddToCart}
               disabled={isAdding || product.stock_quantity <= 0}
-              className={`flex-1 py-4 rounded-lg font-bold text-lg text-white transition-all flex justify-center items-center gap-2 ${
+              className={`flex-1 py-4 min-h-[48px] rounded-lg font-bold text-base sm:text-lg text-white transition-all flex justify-center items-center gap-2 ${
                 product.stock_quantity <= 0
                   ? 'bg-gray-400 cursor-not-allowed shadow-none'
                   : isAdding
@@ -198,6 +199,19 @@ const ProductDetails = () => {
                 'Add to Cart / Buy Now'
               )}
             </motion.button>
+
+            <a
+              href={`https://wa.me/${siteConfig.whatsappNumber}?text=${encodeURIComponent(
+                `Hi MAXVISION, I want to inquire about this product:\nProduct: ${product.name} (${product.brand})\nPrice: ₹${product.discounted_price || product.price}\nLink: ${window.location.href}`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-6 py-4 min-h-[48px] rounded-lg font-bold text-sm sm:text-base bg-emerald-600 hover:bg-emerald-700 text-white transition-all flex items-center justify-center gap-2 shadow-md"
+              title="Ask question on WhatsApp"
+            >
+              <FaWhatsapp size={20} />
+              <span>WhatsApp par poochho</span>
+            </a>
           </div>
 
         </div>

@@ -130,6 +130,9 @@ const Cart = () => {
               <span>Delivery Charges</span>
               <span>FREE</span>
             </div>
+            <div className="text-[11px] text-gray-500 bg-gray-50 p-2 rounded border border-gray-150">
+              Delivery ki details store WhatsApp par confirm karega.
+            </div>
             <div className="flex justify-between font-bold text-lg pt-4 border-t border-gray-100">
               <span>Total Payable</span>
               <span>₹{totalAmount}</span>

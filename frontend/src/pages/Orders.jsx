@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import axios from '../api/axios';
-import { FaShoppingBag, FaBoxOpen, FaCheckCircle, FaClock, FaTruck } from 'react-icons/fa';
+import { FaShoppingBag, FaBoxOpen, FaCheckCircle, FaClock, FaTruck, FaWhatsapp, FaFileInvoice, FaDownload } from 'react-icons/fa';
+import { siteConfig } from '../config/siteConfig';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [downloadingId, setDownloadingId] = useState(null);
+  const location = useLocation();
 
   useEffect(() => {
     fetchOrders();
@@ -83,6 +86,45 @@ const Orders = () => {
     );
   };
 
+  const generateWhatsAppUrl = (order) => {
+    const itemsList = order.items.map(i => `${i.quantity}x ${i.product.name} (${i.lens_package?.replace('_', ' ').toUpperCase() || 'FRAME ONLY'})`).join(', ');
+    const deliveryText = order.delivery_type === 'PICKUP' ? 'Store Pickup (Shop 4, Sheetal Tower, Main Road, Ranchi)' : `Home Delivery to: ${order.address}`;
+    const payText = `${order.payment_method} (${order.payment_status === 'PAID' ? 'Paid' : order.payment_status === 'PENDING_VERIFICATION' ? 'Verification Pending' : 'Unpaid'})`;
+    
+    const msg = 
+      `Hello MAXVISION Optical, I want to confirm my order:\n\n` +
+      `• Order ID: #${order.id}\n` +
+      `• Phone: ${order.mobile}\n` +
+      `• Items: ${itemsList}\n` +
+      `• Delivery Mode: ${deliveryText}\n` +
+      `• Payment Method: ${payText}\n` +
+      `• Total Amount: ₹${order.total_amount}\n\n` +
+      `Please confirm my order.`;
+
+    const encoded = encodeURIComponent(msg.substring(0, 1400));
+    return `https://wa.me/${siteConfig.whatsappNumber}?text=${encoded}`;
+  };
+
+  const handleDownloadInvoice = async (orderId) => {
+    try {
+      setDownloadingId(orderId);
+      const res = await axios.get(`orders/${orderId}/invoice/`, { responseType: 'blob' });
+      const blobUrl = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `MAXVISION_Invoice_${orderId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error(err);
+      alert('Could not download invoice. Please try again or contact store.');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   if (loading) return <div className="text-center py-20 font-bold text-lg text-primary">Loading Orders...</div>;
 
   if (orders.length === 0) {
@@ -102,6 +144,29 @@ const Orders = () => {
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
+      {location.state?.success && (
+        <div className="mb-8 p-6 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 shadow-sm">
+          <div className="flex items-center gap-3 mb-2">
+            <FaCheckCircle className="text-emerald-600 text-2xl" />
+            <h2 className="text-xl font-bold">Order Placed Successfully!</h2>
+          </div>
+          <p className="text-sm text-emerald-800 mb-4">
+            Thank you for ordering with MAXVISION Optical. For quickest confirmation and tracking, click below to send your order details directly to our Ranchi store WhatsApp:
+          </p>
+          {orders[0] && (
+            <a 
+              href={generateWhatsAppUrl(orders[0])}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-lg shadow-md transition-all text-sm"
+            >
+              <FaWhatsapp size={18} />
+              <span>Confirm Order on WhatsApp</span>
+            </a>
+          )}
+        </div>
+      )}
+
       <h1 className="text-3xl font-bold mb-8 text-primary flex items-center gap-3">
         <FaShoppingBag className="text-secondary" /> My Orders ({orders.length})
       </h1>
@@ -199,6 +264,30 @@ const Orders = () => {
 
             {/* Delivery Info Footer */}
             {getDeliveryText(order)}
+
+            {/* Order Action Buttons */}
+            <div className="bg-gray-50 px-6 py-3.5 border-t border-gray-150 flex flex-wrap items-center justify-between gap-3">
+              <a
+                href={generateWhatsAppUrl(order)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-lg shadow-sm transition-all"
+                title="Send order details to store WhatsApp"
+              >
+                <FaWhatsapp size={16} />
+                <span>Confirm Order on WhatsApp</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={() => handleDownloadInvoice(order.id)}
+                disabled={downloadingId === order.id}
+                className="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-lg shadow-sm transition-all hover:bg-gray-50"
+              >
+                <FaDownload className="text-secondary" size={14} />
+                <span>{downloadingId === order.id ? 'Generating...' : 'Download Invoice (PDF)'}</span>
+              </button>
+            </div>
           </div>
         ))}
       </div>

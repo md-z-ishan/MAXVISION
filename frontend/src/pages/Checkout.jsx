@@ -5,7 +5,8 @@ import { motion } from 'framer-motion';
 import { siteConfig } from '../config/siteConfig';
 import { 
   FaTruck, FaStore, FaFileMedical, FaKeyboard, 
-  FaTimesCircle, FaMoneyBillWave, FaQrcode, FaCheck, FaExclamationCircle 
+  FaTimesCircle, FaMoneyBillWave, FaQrcode, FaCheck,
+  FaExclamationCircle, FaMobileAlt, FaMapMarkerAlt
 } from 'react-icons/fa';
 
 const Checkout = () => {
@@ -23,6 +24,11 @@ const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState('COD'); // 'COD' or 'UPI'
   const [utrNumber, setUtrNumber] = useState('');
   const [copiedUpi, setCopiedUpi] = useState(false);
+  const [paymentSettings, setPaymentSettings] = useState({ upi_enabled: false });
+
+  // Address book state
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState('new');
 
   // Prescription state
   const [prescriptionOption, setPrescriptionOption] = useState('none'); // 'none', 'file', 'manual'
@@ -42,6 +48,8 @@ const Checkout = () => {
 
   useEffect(() => {
     fetchCart();
+    fetchPaymentSettings();
+    fetchAddresses();
   }, []);
 
   const fetchCart = async () => {
@@ -56,8 +64,52 @@ const Checkout = () => {
     }
   };
 
+  const fetchPaymentSettings = async () => {
+    try {
+      const res = await axios.get('payment-settings/');
+      setPaymentSettings(res.data);
+      if (!res.data.upi_enabled) {
+        setPaymentMethod('COD');
+      }
+    } catch (err) {
+      setPaymentSettings({ upi_enabled: false });
+      setPaymentMethod('COD');
+    }
+  };
+
+  const fetchAddresses = async () => {
+    try {
+      const res = await axios.get('addresses/');
+      const list = res.data || [];
+      setSavedAddresses(list);
+      const def = list.find(a => a.is_default) || list[0];
+      if (def) {
+        setSelectedAddressId(def.id);
+        setAddress(`${def.full_name}, ${def.street_address}, ${def.city}, ${def.state} - ${def.pincode}`);
+        setMobile(def.mobile);
+      }
+    } catch (err) {
+      // Guest or no saved address
+    }
+  };
+
+  const handleAddressSelect = (addrId) => {
+    setSelectedAddressId(addrId);
+    if (addrId === 'new') {
+      setAddress('');
+      setMobile('');
+    } else {
+      const found = savedAddresses.find(a => a.id === parseInt(addrId));
+      if (found) {
+        setAddress(`${found.full_name}, ${found.street_address}, ${found.city}, ${found.state} - ${found.pincode}`);
+        setMobile(found.mobile);
+      }
+    }
+  };
+
   const handleCopyUpi = () => {
-    navigator.clipboard.writeText(siteConfig.upiId || 'maxvision@upi');
+    const upi = paymentSettings?.upi_id || siteConfig.upiId || '7485067874@ptyes';
+    navigator.clipboard.writeText(upi);
     setCopiedUpi(true);
     setTimeout(() => setCopiedUpi(false), 2500);
   };
@@ -77,9 +129,12 @@ const Checkout = () => {
       return;
     }
 
-    if (paymentMethod === 'UPI' && (!utrNumber.trim() || utrNumber.trim().length < 6)) {
-      setErrorMessage('Please enter your 12-digit UPI Reference / UTR Number after completing payment.');
-      return;
+    if (paymentMethod === 'UPI') {
+      const cleanUtr = utrNumber.trim();
+      if (!cleanUtr || !/^[a-zA-Z0-9]{10,22}$/.test(cleanUtr)) {
+        setErrorMessage('Please enter a valid 10 to 22 character alphanumeric UPI Reference / UTR Number.');
+        return;
+      }
     }
 
     if (prescriptionOption === 'file' && !prescriptionFile) {
@@ -106,7 +161,7 @@ const Checkout = () => {
     formData.append('delivery_type', deliveryType);
     formData.append('payment_method', paymentMethod);
     if (paymentMethod === 'UPI') {
-      formData.append('utr_number', utrNumber);
+      formData.append('utr_number', utrNumber.trim());
     }
     formData.append('prescription_option', prescriptionOption);
 
@@ -127,12 +182,12 @@ const Checkout = () => {
     }
 
     try {
-      await axios.post('checkout/', formData, {
+      const res = await axios.post('checkout/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-      navigate('/orders', { state: { success: true } });
+      navigate('/orders', { state: { success: true, orderId: res.data.order_id } });
     } catch (error) {
       console.error(error);
       const serverErr = error.response?.data?.error || error.response?.data?.detail || 'Checkout failed. Please check your inputs and try again.';
@@ -250,6 +305,56 @@ const Checkout = () => {
               <span className="w-6 h-6 rounded-full bg-secondary text-white text-xs flex items-center justify-center font-bold">2</span>
               Contact & Address
             </h2>
+
+            {/* Address Book / Saved Addresses (if any) */}
+            {savedAddresses.length > 0 && deliveryType === 'DELIVERY' && (
+              <div className="mb-4 space-y-2">
+                <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider">Select Saved Address</label>
+                <div className="grid grid-cols-1 gap-2">
+                  {savedAddresses.map(addr => (
+                    <label 
+                      key={addr.id}
+                      className={`p-3 rounded-lg border cursor-pointer flex items-start gap-3 transition-all ${
+                        selectedAddressId === addr.id ? 'border-secondary bg-teal-50/40 shadow-xs' : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <input 
+                        type="radio"
+                        name="saved_addr"
+                        value={addr.id}
+                        checked={selectedAddressId === addr.id}
+                        onChange={() => handleAddressSelect(addr.id)}
+                        className="mt-1 accent-secondary"
+                      />
+                      <div className="text-xs">
+                        <div className="font-bold text-primary flex items-center gap-2">
+                          <FaMapMarkerAlt className="text-secondary" /> {addr.full_name} ({addr.mobile})
+                          {addr.is_default && <span className="text-[10px] bg-teal-100 text-teal-800 px-1.5 py-0.5 rounded font-semibold">Default</span>}
+                        </div>
+                        <div className="text-gray-600 mt-0.5">{addr.street_address}, {addr.city}, {addr.state} - {addr.pincode}</div>
+                      </div>
+                    </label>
+                  ))}
+
+                  <label 
+                    className={`p-3 rounded-lg border cursor-pointer flex items-center gap-3 transition-all ${
+                      selectedAddressId === 'new' ? 'border-secondary bg-teal-50/40 shadow-xs' : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <input 
+                      type="radio"
+                      name="saved_addr"
+                      value="new"
+                      checked={selectedAddressId === 'new'}
+                      onChange={() => handleAddressSelect('new')}
+                      className="accent-secondary"
+                    />
+                    <span className="text-xs font-semibold text-primary">+ Enter a different delivery address</span>
+                  </label>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-700">10-Digit Mobile Number *</label>
@@ -492,7 +597,7 @@ const Checkout = () => {
               Payment Method
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className={`grid gap-4 ${paymentSettings?.upi_enabled ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
               <label 
                 className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-start gap-3 ${
                   paymentMethod === 'COD' 
@@ -516,38 +621,63 @@ const Checkout = () => {
                 </div>
               </label>
 
-              <label 
-                className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-start gap-3 ${
-                  paymentMethod === 'UPI' 
-                    ? 'border-secondary bg-teal-50/50 shadow-sm' 
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <input 
-                  type="radio" 
-                  name="payment_method" 
-                  value="UPI" 
-                  checked={paymentMethod === 'UPI'} 
-                  onChange={() => setPaymentMethod('UPI')}
-                  className="mt-1 accent-secondary"
-                />
-                <div>
-                  <div className="font-bold text-primary flex items-center gap-2">
-                    <FaQrcode className="text-secondary" /> UPI / QR Payment
+              {paymentSettings?.upi_enabled && (
+                <label 
+                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-start gap-3 ${
+                    paymentMethod === 'UPI' 
+                      ? 'border-secondary bg-teal-50/50 shadow-sm' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <input 
+                    type="radio" 
+                    name="payment_method" 
+                    value="UPI" 
+                    checked={paymentMethod === 'UPI'} 
+                    onChange={() => setPaymentMethod('UPI')}
+                    className="mt-1 accent-secondary"
+                  />
+                  <div>
+                    <div className="font-bold text-primary flex items-center gap-2">
+                      <FaQrcode className="text-secondary" /> UPI / QR Payment
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Pay using shop UPI QR code or any UPI App.</p>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Instant payment via GPay, PhonePe, Paytm, or BHIM.</p>
-                </div>
-              </label>
+                </label>
+              )}
             </div>
 
-            {paymentMethod === 'UPI' && (
-              <div className="mt-4 p-5 rounded-xl bg-teal-50/60 border border-teal-200 space-y-3">
-                <div className="text-xs font-bold text-teal-900 uppercase tracking-wider">Direct UPI Transfer</div>
+            {paymentSettings?.upi_enabled && paymentMethod === 'UPI' && (
+              <div className="mt-4 p-5 rounded-xl bg-teal-50/60 border border-teal-200 space-y-4">
+                <div className="text-xs font-bold text-teal-900 uppercase tracking-wider">Store Official UPI Payment</div>
                 
+                {paymentSettings.qr_image && (
+                  <div className="flex flex-col items-center bg-white p-4 rounded-lg border border-teal-200 text-center">
+                    <span className="text-xs font-bold text-gray-500 mb-2">Scan to Pay Exact Amount: ₹{totalAmount}</span>
+                    <img 
+                      src={paymentSettings.qr_image} 
+                      alt="Store Official UPI QR Code" 
+                      className="w-48 h-48 object-contain border border-gray-150 rounded-lg p-1 bg-white"
+                    />
+                    <span className="text-[11px] text-gray-400 mt-1.5">{paymentSettings.display_name}</span>
+                  </div>
+                )}
+
+                {/* Mobile Direct App Intent Link */}
+                <div className="sm:hidden">
+                  <a
+                    href={`upi://pay?pa=${paymentSettings.upi_id}&pn=${encodeURIComponent(paymentSettings.display_name || 'MAXVISION Optical')}&am=${totalAmount}&cu=INR&tn=OrderMAXVISION`}
+                    className="w-full min-h-[44px] py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg flex items-center justify-center gap-2 text-sm shadow-sm transition-all"
+                  >
+                    <FaMobileAlt size={16} />
+                    <span>Open in UPI App (GPay / PhonePe / Paytm)</span>
+                  </a>
+                </div>
+
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 rounded-lg border border-teal-200">
                   <div>
-                    <span className="text-xs text-gray-400 block font-semibold">MAXVISION Store UPI ID</span>
-                    <span className="text-base font-extrabold text-primary font-mono">{siteConfig.upiId}</span>
+                    <span className="text-xs text-gray-400 block font-semibold">Store UPI ID</span>
+                    <span className="text-base font-extrabold text-primary font-mono">{paymentSettings.upi_id}</span>
                   </div>
                   <button 
                     type="button" 
@@ -560,18 +690,18 @@ const Checkout = () => {
 
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">
-                    12-Digit UPI Reference / UTR Number *
+                    10-22 Character UPI Reference / UTR Number *
                   </label>
                   <input 
                     type="text" 
                     maxLength="25"
                     value={utrNumber}
                     onChange={(e) => setUtrNumber(e.target.value.trim())}
-                    placeholder="e.g. 412384918234"
+                    placeholder="Enter 12-digit transaction UTR number"
                     className="w-full border border-gray-300 rounded-lg p-3 text-base focus:outline-none focus:ring-2 focus:ring-secondary font-mono"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    After completing the transfer in your UPI app, paste the 12-digit transaction UTR number here.
+                    After completing the transfer in your UPI app, paste the transaction UTR number here for owner verification.
                   </p>
                 </div>
               </div>
@@ -627,6 +757,9 @@ const Checkout = () => {
               <span className="font-semibold text-green-700">
                 {deliveryCharge === 0 ? 'FREE' : `₹${deliveryCharge}`}
               </span>
+            </div>
+            <div className="p-2.5 bg-amber-50 rounded border border-amber-200 text-amber-900 text-xs font-medium">
+              Delivery ki details store WhatsApp par confirm karega.
             </div>
             <div className="flex justify-between text-gray-600">
               <span>Payment Mode</span>

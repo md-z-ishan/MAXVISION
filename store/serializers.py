@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Product, Prescription, UserProfile, Cart, Wishlist, Order, OrderItem, HomeVisitRequest
+from .models import (
+    Product, Prescription, UserProfile, Cart, Wishlist,
+    Order, OrderItem, HomeVisitRequest, StorePaymentSettings, Address
+)
 
 class HomeVisitRequestSerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,7 +14,19 @@ class HomeVisitRequestSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'is_staff']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'is_staff']
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = ['id', 'full_name', 'mobile', 'street_address', 'city', 'state', 'pincode', 'is_default', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+class StorePaymentSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StorePaymentSettings
+        fields = ['upi_id', 'display_name', 'qr_image', 'upi_enabled']
+
 
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
@@ -55,6 +70,7 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'address', 'mobile', 'total_amount', 'status', 'stock_restored',
             'payment_method', 'payment_status', 'utr_number', 'delivery_type',
-            'delivery_charge', 'prescription', 'prescription_file', 'created_at', 'updated_at', 'items'
+            'delivery_charge', 'prescription', 'prescription_file', 'payment_verified_at',
+            'created_at', 'updated_at', 'items'
         ]
 
