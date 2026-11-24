@@ -49,13 +49,18 @@ const Login = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-medium text-gray-700">Password</label>
+              <Link to="/forgot-password" className="text-xs text-secondary font-bold hover:underline">
+                Forgot Password?
+              </Link>
+            </div>
             <input 
               type="password" 
               required 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-secondary"
+              className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-secondary"
             />
           </div>
           <button type="submit" className="w-full bg-secondary text-white font-bold py-3 rounded-md hover:bg-teal-600 transition-colors shadow-md">

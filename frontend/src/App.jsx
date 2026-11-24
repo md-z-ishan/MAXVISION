@@ -22,6 +22,9 @@ import ContactUs from './pages/ContactUs';
 import FAQs from './pages/FAQs';
 import ReturnsExchanges from './pages/ReturnsExchanges';
 import Cancellation from './pages/Cancellation';
+import Profile from './pages/Profile';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import { useDispatch } from 'react-redux';
 import axios from './api/axios';
 import { setUser } from './redux/authSlice';
@@ -55,6 +58,10 @@ function App() {
         <Route path="/register" element={<Register />} />
         {/* Fallbacks */}
         <Route path="/orders" element={<Orders />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/stores" element={<Stores />} />
         <Route path="/try-on" element={<VirtualTryOn />} />

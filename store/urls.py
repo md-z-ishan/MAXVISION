@@ -47,6 +47,7 @@ router = DefaultRouter()
 router.register(r'api/products', api_views.ProductViewSet, basename='api_products')
 router.register(r'api/cart', api_views.CartViewSet, basename='api_cart')
 router.register(r'api/wishlist', api_views.WishlistViewSet, basename='api_wishlist')
+router.register(r'api/addresses', api_views.AddressViewSet, basename='api_addresses')
 
 urlpatterns += router.urls
 
@@ -55,9 +56,18 @@ urlpatterns += [
     path('api/auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/auth/profile/', api_views.UserProfileAPI.as_view(), name='api_profile'),
+    path('api/auth/password-reset-request/', api_views.PasswordResetRequestAPI.as_view(), name='api_password_reset_request'),
+    path('api/auth/password-reset/', api_views.PasswordResetRequestAPI.as_view(), name='api_password_reset'),
+    path('api/auth/password-reset-confirm/', api_views.PasswordResetConfirmAPI.as_view(), name='api_password_reset_confirm'),
+    path('api/auth/password-reset/confirm/', api_views.PasswordResetConfirmAPI.as_view(), name='api_password_reset_confirm_alt'),
     path('api/cart/update/<int:pk>/<str:action>/', api_views.UpdateCartQuantity.as_view(), name='api_update_cart'),
     path('api/wishlist/toggle/<int:product_id>/', api_views.ToggleWishlistAPI.as_view(), name='api_toggle_wishlist'),
     path('api/checkout/', api_views.CheckoutAPI.as_view(), name='api_checkout'),
     path('api/orders/', api_views.UserOrdersAPI.as_view(), name='api_orders'),
+    path('api/orders/<int:pk>/invoice/', api_views.OrderInvoiceAPI.as_view(), name='api_order_invoice'),
+    path('api/orders/<int:pk>/prescription/', api_views.OrderPrescriptionDownloadAPI.as_view(), name='api_order_prescription'),
     path('api/home-visit/', api_views.HomeVisitRequestAPI.as_view(), name='api_home_visit'),
+    path('api/payment-settings/', api_views.PaymentSettingsAPI.as_view(), name='api_payment_settings'),
+    path('api/health/', api_views.HealthCheckAPI.as_view(), name='api_health'),
+    path('api/admin/dashboard-stats/', api_views.AdminDashboardStatsAPI.as_view(), name='api_admin_dashboard_stats'),
 ]

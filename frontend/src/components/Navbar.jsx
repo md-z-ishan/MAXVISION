@@ -221,6 +221,12 @@ const Navbar = () => {
                         Hi, {user?.first_name || user?.username || 'Customer'}
                       </div>
                       <button
+                        onClick={() => { navigate('/profile'); setShowDropdown(false); }}
+                        className="w-full text-left px-4 py-2.5 text-xs font-bold text-primary hover:bg-gray-50 transition-colors border-b border-gray-100"
+                      >
+                        My Profile & Addresses
+                      </button>
+                      <button
                         onClick={() => { navigate('/orders'); setShowDropdown(false); }}
                         className="w-full text-left px-4 py-2.5 text-xs font-bold text-primary hover:bg-gray-50 transition-colors border-b border-gray-100"
                       >
