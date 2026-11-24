@@ -1,0 +1,511 @@
+{
+  "viewport_tests": [
+    {
+      "viewport": "320x568 (small_mobile)",
+      "page": "/",
+      "screenshot": "docs/qa/responsive/small_mobile_home.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "320x568 (small_mobile)",
+      "page": "/products",
+      "screenshot": "docs/qa/responsive/small_mobile_products.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "320x568 (small_mobile)",
+      "page": "/product/1",
+      "screenshot": "docs/qa/responsive/small_mobile_product_details.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "320x568 (small_mobile)",
+      "page": "/cart",
+      "screenshot": "docs/qa/responsive/small_mobile_cart.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "320x568 (small_mobile)",
+      "page": "/checkout",
+      "screenshot": "docs/qa/responsive/small_mobile_checkout.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "320x568 (small_mobile)",
+      "page": "/stores",
+      "screenshot": "docs/qa/responsive/small_mobile_stores.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "320x568 (small_mobile)",
+      "page": "/try-at-home",
+      "screenshot": "docs/qa/responsive/small_mobile_try_at_home.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "320x568 (small_mobile)",
+      "page": "/profile",
+      "screenshot": "docs/qa/responsive/small_mobile_profile.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "320x568 (small_mobile)",
+      "page": "/orders",
+      "screenshot": "docs/qa/responsive/small_mobile_orders.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "375x812 (standard_mobile)",
+      "page": "/",
+      "screenshot": "docs/qa/responsive/standard_mobile_home.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "375x812 (standard_mobile)",
+      "page": "/products",
+      "screenshot": "docs/qa/responsive/standard_mobile_products.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "375x812 (standard_mobile)",
+      "page": "/product/1",
+      "screenshot": "docs/qa/responsive/standard_mobile_product_details.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "375x812 (standard_mobile)",
+      "page": "/cart",
+      "screenshot": "docs/qa/responsive/standard_mobile_cart.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "375x812 (standard_mobile)",
+      "page": "/checkout",
+      "screenshot": "docs/qa/responsive/standard_mobile_checkout.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "375x812 (standard_mobile)",
+      "page": "/stores",
+      "screenshot": "docs/qa/responsive/standard_mobile_stores.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "375x812 (standard_mobile)",
+      "page": "/try-at-home",
+      "screenshot": "docs/qa/responsive/standard_mobile_try_at_home.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "375x812 (standard_mobile)",
+      "page": "/profile",
+      "screenshot": "docs/qa/responsive/standard_mobile_profile.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "375x812 (standard_mobile)",
+      "page": "/orders",
+      "screenshot": "docs/qa/responsive/standard_mobile_orders.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "430x932 (large_mobile)",
+      "page": "/",
+      "screenshot": "docs/qa/responsive/large_mobile_home.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "430x932 (large_mobile)",
+      "page": "/products",
+      "screenshot": "docs/qa/responsive/large_mobile_products.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "430x932 (large_mobile)",
+      "page": "/product/1",
+      "screenshot": "docs/qa/responsive/large_mobile_product_details.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "430x932 (large_mobile)",
+      "page": "/cart",
+      "screenshot": "docs/qa/responsive/large_mobile_cart.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "430x932 (large_mobile)",
+      "page": "/checkout",
+      "screenshot": "docs/qa/responsive/large_mobile_checkout.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "430x932 (large_mobile)",
+      "page": "/stores",
+      "screenshot": "docs/qa/responsive/large_mobile_stores.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "430x932 (large_mobile)",
+      "page": "/try-at-home",
+      "screenshot": "docs/qa/responsive/large_mobile_try_at_home.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "430x932 (large_mobile)",
+      "page": "/profile",
+      "screenshot": "docs/qa/responsive/large_mobile_profile.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "430x932 (large_mobile)",
+      "page": "/orders",
+      "screenshot": "docs/qa/responsive/large_mobile_orders.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "768x1024 (tablet)",
+      "page": "/",
+      "screenshot": "docs/qa/responsive/tablet_home.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "768x1024 (tablet)",
+      "page": "/products",
+      "screenshot": "docs/qa/responsive/tablet_products.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "768x1024 (tablet)",
+      "page": "/product/1",
+      "screenshot": "docs/qa/responsive/tablet_product_details.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "768x1024 (tablet)",
+      "page": "/cart",
+      "screenshot": "docs/qa/responsive/tablet_cart.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "768x1024 (tablet)",
+      "page": "/checkout",
+      "screenshot": "docs/qa/responsive/tablet_checkout.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "768x1024 (tablet)",
+      "page": "/stores",
+      "screenshot": "docs/qa/responsive/tablet_stores.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "768x1024 (tablet)",
+      "page": "/try-at-home",
+      "screenshot": "docs/qa/responsive/tablet_try_at_home.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "768x1024 (tablet)",
+      "page": "/profile",
+      "screenshot": "docs/qa/responsive/tablet_profile.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "768x1024 (tablet)",
+      "page": "/orders",
+      "screenshot": "docs/qa/responsive/tablet_orders.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "1366x768 (laptop)",
+      "page": "/",
+      "screenshot": "docs/qa/responsive/laptop_home.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "1366x768 (laptop)",
+      "page": "/products",
+      "screenshot": "docs/qa/responsive/laptop_products.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "1366x768 (laptop)",
+      "page": "/product/1",
+      "screenshot": "docs/qa/responsive/laptop_product_details.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "1366x768 (laptop)",
+      "page": "/cart",
+      "screenshot": "docs/qa/responsive/laptop_cart.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "1366x768 (laptop)",
+      "page": "/checkout",
+      "screenshot": "docs/qa/responsive/laptop_checkout.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "1366x768 (laptop)",
+      "page": "/stores",
+      "screenshot": "docs/qa/responsive/laptop_stores.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "1366x768 (laptop)",
+      "page": "/try-at-home",
+      "screenshot": "docs/qa/responsive/laptop_try_at_home.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "1366x768 (laptop)",
+      "page": "/profile",
+      "screenshot": "docs/qa/responsive/laptop_profile.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "1366x768 (laptop)",
+      "page": "/orders",
+      "screenshot": "docs/qa/responsive/laptop_orders.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "1920x1080 (desktop)",
+      "page": "/",
+      "screenshot": "docs/qa/responsive/desktop_home.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "1920x1080 (desktop)",
+      "page": "/products",
+      "screenshot": "docs/qa/responsive/desktop_products.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "1920x1080 (desktop)",
+      "page": "/product/1",
+      "screenshot": "docs/qa/responsive/desktop_product_details.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "1920x1080 (desktop)",
+      "page": "/cart",
+      "screenshot": "docs/qa/responsive/desktop_cart.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "1920x1080 (desktop)",
+      "page": "/checkout",
+      "screenshot": "docs/qa/responsive/desktop_checkout.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "1920x1080 (desktop)",
+      "page": "/stores",
+      "screenshot": "docs/qa/responsive/desktop_stores.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "1920x1080 (desktop)",
+      "page": "/try-at-home",
+      "screenshot": "docs/qa/responsive/desktop_try_at_home.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "1920x1080 (desktop)",
+      "page": "/profile",
+      "screenshot": "docs/qa/responsive/desktop_profile.png",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "viewport": "1920x1080 (desktop)",
+      "page": "/orders",
+      "screenshot": "docs/qa/responsive/desktop_orders.png",
+      "status": "VERIFIED PASS"
+    }
+  ],
+  "customer_journey": [
+    {
+      "test": "Register Empty Payload Validation",
+      "status": "VERIFIED PASS",
+      "code": 400
+    },
+    {
+      "test": "Register Invalid Phone Validation",
+      "status": "VERIFIED PASS",
+      "code": 400
+    },
+    {
+      "test": "Register Privilege Escalation Guard",
+      "status": "VERIFIED PASS",
+      "code": 400
+    },
+    {
+      "test": "Valid Customer Registration",
+      "status": "VERIFIED PASS",
+      "code": 201
+    },
+    {
+      "test": "Duplicate Registration Rejection",
+      "status": "VERIFIED PASS",
+      "code": 400
+    },
+    {
+      "test": "Invalid Credentials Login Rejection",
+      "status": "VERIFIED PASS",
+      "code": 401
+    },
+    {
+      "test": "Valid Login & SimpleJWT Token Issuance",
+      "status": "VERIFIED PASS",
+      "code": 200
+    },
+    {
+      "test": "Token Refresh Flow",
+      "status": "VERIFIED PASS",
+      "code": 200
+    },
+    {
+      "test": "Customer Django Admin Access Blocked",
+      "status": "VERIFIED PASS",
+      "code": 200
+    },
+    {
+      "test": "Product Catalog List & Response Structure",
+      "status": "VERIFIED PASS",
+      "count": 29
+    },
+    {
+      "test": "Category Filter: eyeglasses",
+      "status": "VERIFIED PASS",
+      "count": 12
+    },
+    {
+      "test": "Category Filter: sunglasses",
+      "status": "VERIFIED PASS",
+      "count": 7
+    },
+    {
+      "test": "Category Filter: computer_glasses",
+      "status": "VERIFIED PASS",
+      "count": 3
+    },
+    {
+      "test": "Category Filter: contact_lenses",
+      "status": "VERIFIED PASS",
+      "count": 7
+    },
+    {
+      "test": "Add to Cart with Single Vision Lens Package (+\u20b9500)",
+      "status": "VERIFIED PASS",
+      "item": {
+        "id": 12,
+        "product": {
+          "id": 60,
+          "name": "Ray-Ban Highstreet RB5228",
+          "description": "Black Full Rim Rectangle Eyeglasses. Lightweight acetate frame with spring hinges. Best for daily office wear. UV400 anti-glare coating.",
+          "price": 6990.0,
+          "discount_percentage": 30.0,
+          "stock_quantity": 17,
+          "category": "eyeglasses",
+          "frame_shape": "rectangle",
+          "frame_size": "medium",
+          "frame_color": "Black",
+          "brand": "Ray-Ban",
+          "material": "Acetate",
+          "image": null,
+          "image_url": "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=500&h=400&fit=crop&auto=format",
+          "lens_type": null,
+          "wear_duration": null,
+          "pack_size": null,
+          "power_required": false
+        },
+        "quantity": 1,
+        "lens_package": "single_vision",
+        "lens_price": 500.0,
+        "subtotal": 5393.0
+      }
+    },
+    {
+      "test": "Increment Cart Quantity",
+      "status": "VERIFIED PASS",
+      "code": 200
+    },
+    {
+      "test": "Decrement Cart Quantity",
+      "status": "VERIFIED PASS",
+      "code": 200
+    },
+    {
+      "test": "Address Book Create with Default Flag",
+      "status": "VERIFIED PASS",
+      "id": 3
+    },
+    {
+      "test": "Checkout with COD & Prescription Parameters",
+      "status": "VERIFIED PASS",
+      "order_id": 9
+    },
+    {
+      "test": "My Orders Retrieval & Order Visibility",
+      "status": "VERIFIED PASS",
+      "order_count": 1
+    },
+    {
+      "test": "ReportLab Dynamic PDF Invoice Download",
+      "status": "VERIFIED PASS",
+      "bytes": 2845
+    },
+    {
+      "test": "Protected Media Serve Direct Access 403 Block",
+      "status": "VERIFIED PASS",
+      "code": 403
+    },
+    {
+      "test": "UPI Checkout Rejection on Missing UTR",
+      "status": "VERIFIED PASS",
+      "code": 400
+    },
+    {
+      "test": "UPI Checkout Rejection on Short UTR (<10)",
+      "status": "VERIFIED PASS",
+      "code": 400
+    },
+    {
+      "test": "Valid UPI Checkout with 12-digit UTR & PENDING_VERIFICATION Status",
+      "status": "VERIFIED PASS",
+      "order_id": 10
+    },
+    {
+      "test": "Doorstep Try @ Home Booking Submission",
+      "status": "VERIFIED PASS",
+      "code": 201
+    },
+    {
+      "test": "Password Reset Request",
+      "status": "VERIFIED PASS",
+      "code": 200
+    }
+  ],
+  "admin_rbac": [
+    {
+      "test": "Shop Owner Group Exact 18 Permissions",
+      "status": "VERIFIED PASS",
+      "perms_count": 18
+    },
+    {
+      "test": "Shop Owner Excluded from User & Group Management",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "test": "Shop Owner Blocked from Deleting Financial/Order Records",
+      "status": "VERIFIED PASS"
+    },
+    {
+      "test": "Order Cancellation Atomic Single-Restore Stock Integrity",
+      "status": "VERIFIED PASS"
+    }
+  ],
+  "bugs": []
+}
