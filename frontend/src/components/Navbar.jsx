@@ -114,7 +114,7 @@ const Navbar = () => {
                   : 'text-primary border-transparent hover:text-secondary'
               }`}
             >
-              Contacts
+              Contact Lenses
             </Link>
             <Link
               to="/special-power"
@@ -145,6 +145,16 @@ const Navbar = () => {
               }`}
             >
               Try @ Home
+            </Link>
+            <Link
+              to="/try-on"
+              className={`transition-all uppercase py-1 border-b-2 ${
+                isNavActive('/try-on')
+                  ? 'text-secondary border-secondary font-black'
+                  : 'text-primary border-transparent hover:text-secondary'
+              }`}
+            >
+              Virtual 3D Try-On
             </Link>
           </nav>
         </div>
@@ -279,13 +289,16 @@ const Navbar = () => {
           to="/products?category=contact_lenses"
           className={`whitespace-nowrap uppercase py-0.5 ${activeCategory === 'contact_lenses' ? 'text-secondary font-black' : ''}`}
         >
-          Contacts
+          Contact Lenses
         </Link>
         <Link to="/stores" className="whitespace-nowrap uppercase py-0.5">
           Stores
         </Link>
+        <Link to="/try-at-home" className="whitespace-nowrap uppercase py-0.5">
+          Try @ Home
+        </Link>
         <Link to="/try-on" className="whitespace-nowrap uppercase py-0.5">
-          Try-On
+          Virtual 3D Try-On
         </Link>
       </div>
 
