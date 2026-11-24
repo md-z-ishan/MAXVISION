@@ -457,6 +457,14 @@ class UserOrdersAPI(generics.ListAPIView):
 class RegisterUserAPI(APIView):
     throttle_scope = 'auth'
     def post(self, request):
+        # Strict Customer registration guard: Reject attempts to inject privileged fields
+        disallowed_fields = ['is_staff', 'is_superuser', 'groups', 'user_permissions', 'role']
+        if any(field in request.data for field in disallowed_fields):
+            return Response(
+                {"error": "Privilege escalation rejected: Customer registration cannot assign staff, superuser, or group roles."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         username = request.data.get('username', '').strip()
         password = request.data.get('password', '')
         email = request.data.get('email', '').strip()

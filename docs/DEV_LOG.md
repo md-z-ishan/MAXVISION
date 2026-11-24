@@ -263,3 +263,27 @@ cp backups/db.sqlite3 db.sqlite3
 10. **Doorstep Optical Staffing:** Confirm staffing and equipment availability for "Try @ Home" doorstep optical requests.
 11. **Contact Lens Catalog:** Provide authentic contact lens inventory list, brands, pricing, and packaging details.
 12. **Daily Payment Verification Workflow:** Establish store staff procedure for reviewing and marking verified UPI orders as "Paid" in Django Admin.
+
+---
+
+## [Stage 11] Final Role-Based Access Control (RBAC) Architecture
+**Date:** 2026-11-24  
+**Branch:** `feature/full-build` (Strictly local commits, no push)  
+
+### 1. Three-Tier Account Architecture Implemented
+* **Developer (Superuser):** Complete technical governance, user management, migrations, configuration, and emergency account recovery.
+* **Shop Owner (`Shop Owner` Group, `is_staff=True`, `is_superuser=False`):** Exactly one designated active owner account with business-only management permissions (catalog, stock, orders, status updates, UPI verification, invoices, Try @ Home, and fulfillment contact info). Strictly forbidden from user/group management, role tampering, and deleting critical records (`Order`, `Invoice`, `Prescription`, `OrderStatusHistory`).
+* **Customer (`is_staff=False`, `is_superuser=False`):** Complete e-commerce features with strict object-level isolation derived from `request.user`. Forbidden from admin access and modifying another customer's data or platform financial/inventory fields.
+
+### 2. Management Commands
+* `store/management/commands/setup_roles.py`: Idempotently creates the `Shop Owner` group with 18 audited business permissions, omitting delete rights on critical models and omitting all `auth.*` permissions.
+* `store/management/commands/create_shop_owner.py`: Interactively collects credentials via `getpass`, enforces the single designated active shop-owner account constraint, sets `is_staff=True, is_superuser=False`, attaches the user to the `Shop Owner` group, and supports safe account rotation (`--rotate`).
+
+### 3. Media & Admin Hardening
+* `store/media_views.py:protected_media_serve`: Guards customer prescriptions (`/media/prescriptions/`) and invoices against direct public/anonymous URL access with HTTP 403 Forbidden. Authorized access routed via `/api/orders/<pk>/prescription/` and `/api/orders/<pk>/invoice/`.
+* `store/admin.py`: Registered `SecureUserAdmin` and `SecureGroupAdmin` overriding `has_module_permission` to restrict `auth.User` and `auth.Group` strictly to `is_superuser`. Added `has_delete_permission` returning `False` for non-superusers on `OrderAdmin`, `InvoiceAdmin`, `PrescriptionAdmin`, and `OrderStatusHistoryAdmin`.
+* `store/api_views.py`: Added strict customer registration guard rejecting any injection of `is_staff`, `is_superuser`, or `groups`.
+
+### 4. Verification Evidence
+* Ran `python3 manage.py test store.tests_stage8a store.tests_stage8b store.tests_stage9 store.tests_concurrency store.tests_stage11_rbac --noinput`: **All 29 tests PASSED in 13.131s**.
+* Ran `python3 manage.py check`: **0 issues identified (0 silenced)**.

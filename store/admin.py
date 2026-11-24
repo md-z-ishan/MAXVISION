@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.contrib.auth.models import User, Group
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin, GroupAdmin as BaseGroupAdmin
 from django.utils import timezone
 from datetime import timedelta
 from .models import (
@@ -6,6 +8,49 @@ from .models import (
     UserProfile, Invoice, HomeVisitRequest, OrderStatusHistory,
     StorePaymentSettings, Address
 )
+
+# === DEVELOPER SUPERUSER PRIVILEGE GUARD FOR AUTH & USERS ===
+# Shop Owner cannot manage Users, Groups, or Permissions. Only Developer superuser can.
+try:
+    admin.site.unregister(User)
+    admin.site.unregister(Group)
+except admin.sites.NotRegistered:
+    pass
+
+class SecureUserAdmin(BaseUserAdmin):
+    def has_module_permission(self, request):
+        return bool(request.user and request.user.is_superuser)
+
+    def has_view_permission(self, request, obj=None):
+        return bool(request.user and request.user.is_superuser)
+
+    def has_add_permission(self, request):
+        return bool(request.user and request.user.is_superuser)
+
+    def has_change_permission(self, request, obj=None):
+        return bool(request.user and request.user.is_superuser)
+
+    def has_delete_permission(self, request, obj=None):
+        return bool(request.user and request.user.is_superuser)
+
+class SecureGroupAdmin(BaseGroupAdmin):
+    def has_module_permission(self, request):
+        return bool(request.user and request.user.is_superuser)
+
+    def has_view_permission(self, request, obj=None):
+        return bool(request.user and request.user.is_superuser)
+
+    def has_add_permission(self, request):
+        return bool(request.user and request.user.is_superuser)
+
+    def has_change_permission(self, request, obj=None):
+        return bool(request.user and request.user.is_superuser)
+
+    def has_delete_permission(self, request, obj=None):
+        return bool(request.user and request.user.is_superuser)
+
+admin.site.register(User, SecureUserAdmin)
+admin.site.register(Group, SecureGroupAdmin)
 
 class HomeVisitRequestAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'phone', 'preferred_date', 'status', 'created_at')
@@ -40,7 +85,13 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ('name', 'brand', 'frame_color')
 
 admin.site.register(Product, ProductAdmin)
-admin.site.register(Prescription)
+class PrescriptionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'created_at')
+
+    def has_delete_permission(self, request, obj=None):
+        return bool(request.user and request.user.is_superuser)
+
+admin.site.register(Prescription, PrescriptionAdmin)
 admin.site.register(UserProfile)
 admin.site.register(Cart)
 
@@ -85,6 +136,10 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [OrderStatusHistoryInline]
     actions = ['mark_as_paid']
 
+    def has_delete_permission(self, request, obj=None):
+        # Critical business record: only Developer superuser can delete
+        return bool(request.user and request.user.is_superuser)
+
     @admin.action(description="Mark selected orders as Paid")
     def mark_as_paid(self, request, queryset):
         count = 0
@@ -102,10 +157,35 @@ class OrderAdmin(admin.ModelAdmin):
             count += 1
         self.message_user(request, f"{count} order(s) marked as PAID.")
 
+class InvoiceAdmin(admin.ModelAdmin):
+    list_display = ('id', 'serial_number', 'order', 'created_at')
+    readonly_fields = ('serial_number', 'order', 'pdf', 'created_at')
+
+    def has_delete_permission(self, request, obj=None):
+        # Critical financial record: only Developer superuser can delete
+        return bool(request.user and request.user.is_superuser)
+
+class OrderStatusHistoryAdmin(admin.ModelAdmin):
+    list_display = ('order', 'status', 'notes', 'created_at')
+    readonly_fields = ('created_at',)
+
+    def has_delete_permission(self, request, obj=None):
+        # Audit history: strictly non-deletable by Shop Owner
+        return bool(request.user and request.user.is_superuser)
+
+    def has_change_permission(self, request, obj=None):
+        return bool(request.user and request.user.is_superuser)
+
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display = ('id', 'order', 'product', 'quantity', 'price')
+
+    def has_delete_permission(self, request, obj=None):
+        return bool(request.user and request.user.is_superuser)
+
 admin.site.register(Order, OrderAdmin)
-admin.site.register(OrderItem)
-admin.site.register(Invoice)
-admin.site.register(OrderStatusHistory)
+admin.site.register(OrderItem, OrderItemAdmin)
+admin.site.register(Invoice, InvoiceAdmin)
+admin.site.register(OrderStatusHistory, OrderStatusHistoryAdmin)
 
 class StorePaymentSettingsAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'upi_id', 'display_name', 'upi_enabled', 'updated_at')

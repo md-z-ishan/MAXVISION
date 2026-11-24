@@ -70,28 +70,28 @@ This repository contains a modern **decoupled full-stack web application**:
 
 An honest, transparent assessment of what is currently built versus what is needed for a real Lenskart/Flipkart level shop:
 
-| Category | Component / Feature | Current State | Status | What Needs To Be Done |
-| :--- | :--- | :--- | :--- | :--- |
-| **Authentication** | User Registration (`/api/auth/register/`) | Working | 🟢 Active | Add phone number validation & full name support in user profile. |
-| **Authentication** | User Login (`/api/auth/login/`) | Working | 🟢 Active | JWT tokens issued and stored in `localStorage`. |
-| **Authentication** | Profile Fetch (`/api/auth/profile/`) | Working | 🟢 Active | Works via API; needs dedicated UI profile view in React frontend. |
-| **Authentication** | Password Reset / Forgot Password | Missing | 🔴 Missing | Needs OTP via WhatsApp/SMS or Email reset link. |
-| **Catalog** | Product List & Filters (`/api/products/`) | Working | 🟢 Active | Filters by `category`, `shape`, `size`, `color`, `brand`, and `q`. 26 products seeded. |
-| **Catalog** | Product Detail (`/product/:id`) | Working | 🟢 Active | Frame specs, pricing, discount, and lens selection. |
-| **Cart** | Cart CRUD (`/api/cart/`) | Working | 🟢 Active | Item addition, quantity increment/decrement, and subtotal calculation with lens package. |
-| **Wishlist** | Wishlist Toggle (`/api/wishlist/`) | Working | 🟢 Active | Authenticated users can save and remove items dynamically. |
-| **Prescription** | File Upload (Checkout) | Working | 🟢 Active | Customer can upload PDF or image prescription file during checkout. |
-| **Prescription** | Manual Eye Power Entry (OD/OS/PD) | Mockup / Half-Done | 🟡 Incomplete | `Prescription` model has OD/OS fields in Django, but frontend checkout doesn't have the numeric power input form. |
-| **Checkout** | Shipping Address & Phone | Working | 🟢 Active | Form captures address and mobile number. |
-| **Payments** | Payment Gateway / COD | Mockup | 🟡 Incomplete | Checkout creates order with "Pending" status directly without payment choice (Razorpay / UPI / Cash on Delivery). |
-| **Inventory** | Stock Auto-Deduction | Broken / Missing | 🔴 Missing | When order is placed, `product.stock_quantity` is NOT decremented. Out-of-stock items can still be ordered. |
-| **Orders** | Order Tracking (`/orders`) | Working | 🟢 Active | Flipkart-style visual stage tracker (Pending ➡️ Accepted ➡️ Processing ➡️ Shipped ➡️ Delivered). |
-| **Invoices** | Order PDF Invoice | Mockup | 🟡 Incomplete | `Invoice` model exists, but `render_to_pdf` in `utils.py` is mocked (`"Mock PDF Content"`). Real PDF generation is needed. |
-| **Admin** | Django Admin (`/admin/`) | Working | 🟢 Active | Shop owner / Admin can inspect orders, download prescriptions, and modify status. |
-| **Admin** | Custom Shopkeeper Dashboard | Half-Done | 🟡 Incomplete | Django templates exist (`store/templates/admin/dashboard.html`), but disconnected from React frontend. |
-| **Store Locator** | Ranchi Store Locator (`/stores`) | Working | 🟢 Active | Shows Sheetal Tower, Main Road, Ranchi with direct Google Maps link & phone numbers. |
-| **Try-On** | Virtual Try-On (`/try-on`) | Prototype | 🟡 Incomplete | Webcam 2D overlay with canvas slider controls. Needs MediaPipe face tracking for auto-alignment. |
-| **Alerts** | WhatsApp / SMS Order Notification | Missing | 🔴 Missing | Shopkeeper needs immediate WhatsApp notification when a Ranchi customer places an order. |
+| Category | Component / Feature | Current State | Status | Verification & Implementation Notes |
+| :--- | :--- | :--- | :---: | :--- |
+| **Authentication** | User Registration () | Implemented | 🟢 Active | 10-digit Indian mobile validation () & privilege escalation guard. |
+| **Authentication** | User Login () | Implemented | 🟢 Active | JWT tokens issued and stored in  with auto-refresh. |
+| **Authentication** | Profile Fetch & Edit () | Implemented | 🟢 Active | Dedicated React profile page () with first/last name, email, and mobile edit. |
+| **Authentication** | Password Reset / Token Flow | Implemented | 🟢 Active | Django  via  & confirm page. |
+| **Catalog** | Product List & Filters () | Implemented | 🟢 Active | Category-aware (Eyeglasses, Sunglasses, Contacts), sort by 5 options, dynamic DB filters. |
+| **Catalog** | Product Detail () | Implemented | 🟢 Active | Frame specs, pricing, discount, lens selector, and direct WhatsApp inquiry button. |
+| **Cart** | Cart CRUD () | Implemented | 🟢 Active | Stock limits enforced, 44px touch targets, zero layout shift, lens package support. |
+| **Wishlist** | Wishlist Toggle () | Implemented | 🟢 Active | Authenticated users can save and remove items dynamically. |
+| **Prescription** | File Upload (Checkout) | Implemented | 🟢 Active | Validated on server (PDF/JPG/PNG max 5MB), protected from public media URLs. |
+| **Prescription** | Manual Eye Power Entry (OD/OS/PD) | Implemented | 🟢 Active | Numerical OD/OS table with SPH (-10 to +10), CYL, AXIS (1-180°), and PD validation. |
+| **Checkout** | Shipping Address & Saved Addresses | Implemented | 🟢 Active | Address book selector, home delivery vs store pickup toggle, free standard shipping. |
+| **Payments** | Dual Payment (COD + Manual UPI QR) | Implemented | 🟢 Active | Admin-managed , QR display, Copy UPI, and 10-22 char unique UTR validation. |
+| **Inventory** | Stock Auto-Deduction & Rollback | Implemented | 🟢 Active | Atomic  conditional update; rollback on out-of-stock; single cancel restore. |
+| **Orders** | Order Tracking () | Implemented | 🟢 Active | Visual tracker (Pending ➡️ Delivered), payment badge, WhatsApp confirm, and invoice download. |
+| **Invoices** | Order PDF Invoice | Implemented | 🟢 Active | Generated dynamically using ReportLab with MAXVISION store address, items, and tax breakdown. |
+| **Admin Panel** | Django Administration () | Implemented | 🟢 Active | Restricted business management for Shop Owner; User/Group protected for Developer superuser. |
+| **Role-Based Access** | 3-Tier RBAC Architecture | Implemented | 🟢 Active | Developer (Superuser), Single Shop Owner (, ), Customers. |
+| **Store Locator** | Ranchi Store Locator () | Implemented | 🟢 Active | Flagship store cards, dual phone numbers (7485067874 / 7033353140), no title overlap. |
+| **Try-On** | Virtual Try-On () | Implemented | 🟢 Active | Owner Studio upload controls protected by staff permissions. |
+| **Alerts & Links** | WhatsApp Order Confirmation Link | Implemented | 🟢 Active | Prefilled URL (<1500 chars) opening WhatsApp with order summary; sensitive Rx values excluded. |
 
 ---
 

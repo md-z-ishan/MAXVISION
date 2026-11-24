@@ -65,20 +65,22 @@ The application runs on a decoupled architecture where the React Single Page App
 | Feature | Description | Status | Details |
 | :--- | :--- | :---: | :--- |
 | **JWT Authentication** | Register, Login, Refresh, Profile API | 🟢 Active | Secure sessionless tokens saved in `localStorage`. |
-| **Product Catalog** | Filter by Category, Shape, Brand, Price | 🟢 Active | 26 items seeded with brands (Ray-Ban, Titan, Fastrack, Oakley, Ranchi Asif). |
-| **Product Details** | Dimensions, materials, live stock status | 🟢 Active | Full eyewear specifications & lens package selector. |
-| **Lens Packages** | Single Vision (+₹500), Bifocal (+₹1500), Zero Power (+₹300) | 🟢 Active | Dynamic pricing calculated and added to cart. |
-| **Shopping Cart** | Cart synchronization, quantity controls | 🟢 Active | Instant subtotal updates and item removals. |
+| **Product Catalog** | Filter by Category, Shape, Brand, Price, Sort | 🟢 Active | Category-aware (Eyeglasses, Sunglasses, Contact Lenses) with DB-driven filters. |
+| **Product Details** | Dimensions, materials, live stock status | 🟢 Active | Full eyewear specifications & lens package selector + direct WhatsApp inquiry. |
+| **Lens Packages** | Single Vision (+₹500), Bifocal (+₹1500), Zero Power (+₹300) | 🟢 Active | Dynamic pricing calculated strictly on server and added to cart. |
+| **Shopping Cart** | Cart synchronization, quantity controls | 🟢 Active | Max stock ceiling, 44px touch targets, zero layout shift, instant updates. |
 | **Wishlist** | Toggle frame wishlist | 🟢 Active | Database-backed user wishlist toggle. |
-| **Prescription Upload** | File upload (PDF / JPG / PNG) | 🟢 Active | Saved in `media/prescriptions/` and linked to order. |
+| **Prescription Privacy** | Upload (PDF/JPG/PNG) & Manual OD/OS | 🟢 Active | Protected from public media URLs; authenticated download via `/api/orders/<id>/prescription/`. |
 | **Order Tracking** | Flipkart/Amazon-style visual tracker | 🟢 Active | Tracks `Pending` ➡️ `Accepted` ➡️ `Processing` ➡️ `Shipped` ➡️ `Delivered`. |
-| **Store Locator** | Ranchi Sheetal Tower Flagship Store | 🟢 Active | Direct Google Maps navigation link & one-tap call buttons. |
-| **Admin Panel** | Django Administration (`/admin/`) | 🟢 Active | View orders, change status, download user prescriptions. |
-| **Virtual Try-On** | Webcam frame overlay prototype | 🟡 Prototype | Interactive canvas 2D frame placement with slider controls. |
-| **Payment Options** | Cash on Delivery / UPI QR Code | 🟡 Next Up | Needs payment option toggle (COD vs UPI) at checkout. |
-| **Stock Auto-Deduction** | Deduct stock upon order placement | 🟡 Next Up | Needs atomic transaction check during checkout. |
-| **Real PDF Invoices** | Downloadable GST tax invoice | 🟡 Next Up | Template mocked; needs ReportLab PDF integration. |
-| **WhatsApp Order Alerts** | Instant alert to Ranchi shopkeeper | 🔵 Planned | Auto-notification with order & prescription details. |
+| **Store Locator** | Ranchi Sheetal Tower Flagship Store | 🟢 Active | Direct Google Maps navigation link & dual store call buttons (7485067874 / 7033353140). |
+| **Admin Panel & RBAC** | 3-Tier Access (Developer, Shop Owner, Customer) | 🟢 Active | Strict Django Admin business management for single Shop Owner; User/Group protected for Developer. |
+| **Virtual Try-On** | 3D / 2D frame placement preview | 🟢 Active | Owner Studio upload controls protected by staff permissions. |
+| **Dual Payment Options** | Cash on Delivery + Manual UPI QR (UTR verification) | 🟢 Active | Admin-managed `StorePaymentSettings` with QR display, Copy UPI, and mobile `upi://pay` deep link. |
+| **Stock Auto-Deduction** | Atomic conditional stock deduction | 🟢 Active | `F('stock_quantity') - qty` conditional update; atomic rollback on failure; single restore on cancel. |
+| **Real PDF Invoices** | Downloadable GST tax invoice | 🟢 Active | Generated dynamically via ReportLab with store address, items, and tax breakdown. |
+| **WhatsApp Order Confirm** | Customer WhatsApp order confirmation link | 🟢 Active | Prefilled URL (<1500 chars) opening WhatsApp with order summary; sensitive Rx values excluded. |
+| **Doorstep Try @ Home** | Doorstep eye test booking in Ranchi | 🟢 Active | `HomeVisitRequest` model with full admin tracking. |
+| **Address Book & Profile** | Saved addresses & user details | 🟢 Active | `/profile` page with default delivery address selector and object-level isolation. |
 
 ---
 
