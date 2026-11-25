@@ -287,3 +287,36 @@ cp backups/db.sqlite3 db.sqlite3
 ### 4. Verification Evidence
 * Ran `python3 manage.py test store.tests_stage8a store.tests_stage8b store.tests_stage9 store.tests_concurrency store.tests_stage11_rbac --noinput`: **All 29 tests PASSED in 13.131s**.
 * Ran `python3 manage.py check`: **0 issues identified (0 silenced)**.
+
+
+---
+
+## [Stage 12] Product Details Overhaul, Hyperlocal Pincode Enforcement & Checkout Hardening
+**Date:** 2026-11-24  
+**Branch:** `feature/full-build` (Strictly local commits, no push)  
+
+### 1. Product Details Image Resolution & Container Architecture
+* **Django Media Resolution:** Updated `ProductSerializer` in `store/serializers.py` so that `image` and `image_url` always resolve to full absolute URLs (`http://127.0.0.1:8000/media/...`) or clean Unsplash fallbacks. Eliminated relative media path 404s and dead third-party image URLs.
+* **Responsive Visual Container:** In `frontend/src/pages/ProductDetails.jsx`, refactored the image layout with `min-h-[300px]`, sticky top centering, and multi-tier image fallback (`getProductImage`), preventing layout collapse when images load asynchronously.
+* **Title Truncation Fix:** Implemented `leading-tight break-words text-xl sm:text-2xl lg:text-3xl font-bold text-[#000042]` to completely eliminate title clipping on narrow mobile viewports.
+
+### 2. Hyperlocal Delivery Pincode Enforcement (834001 & 834002 Only)
+* **Backend Validation:**
+  * `store/serializers.py:AddressSerializer`: Added `validate_pincode` enforcing that `pincode` must be exactly `"834001"` or `"834002"`. Any other pincode (e.g., `110001`, `700001`) is rejected with HTTP 400 Bad Request.
+  * `store/api_views.py:CheckoutAPI`: Added backend validation on `pincode` and regex extraction on address string during delivery checkout. Prevents API bypass and enforces that delivery is strictly restricted to Ranchi pincodes `834001` and `834002`. In-store pickup at Ranchi flagship store remains open to all pincodes.
+* **Frontend Synchronization:**
+  * `frontend/src/config/siteConfig.js`: Configured `allowedPincodes: ["834001", "834002"]`.
+  * `frontend/src/pages/ProductDetails.jsx`: Pincode checker validates against `834001` and `834002` with immediate visual feedback (green confirmation vs red error banner).
+  * `frontend/src/pages/Cart.jsx`: Added prominent Ranchi delivery notice (`834001` & `834002`).
+  * `frontend/src/pages/Checkout.jsx`: Enforced pre-flight check blocking delivery placement if address pincode is outside `834001` / `834002`.
+  * `frontend/src/pages/Profile.jsx`: Address creation form validates strictly for `834001` and `834002`.
+
+### 3. CTA Streamlining & WhatsApp Policy
+* **Product Details:** Completely removed "WhatsApp par poocho" button from `ProductDetails.jsx`. Replaced with distinct, full-width `Add to Cart` and `Buy Now` actions.
+* **Preserved Integrations:** All authorized WhatsApp features (floating bottom-right widget, footer contact, post-checkout confirmation links, invoice share) remain intact.
+
+### 4. Test Suite & Build Verification
+* Created `store/tests_product_delivery.py` (6 tests covering pincode rejection, Ranchi acceptance, pickup flexibility, and serializer absolute image URLs).
+* Ran complete test suite: **48 tests passed (0 failures, 0 errors) in 15.2s**.
+* Ran `python3 manage.py check`: **0 issues identified**.
+* Verified responsive layout across 7 device viewports (320px, 375px, 430px, 768px, 1024px, 1366px, 1920px) with zero horizontal overflow.

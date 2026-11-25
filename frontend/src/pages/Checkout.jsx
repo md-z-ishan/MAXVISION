@@ -119,9 +119,26 @@ const Checkout = () => {
     setErrorMessage('');
 
     // Pre-flight validation
-    if (deliveryType === 'DELIVERY' && !address.trim()) {
-      setErrorMessage('Please enter your full delivery address.');
-      return;
+    if (deliveryType === 'DELIVERY') {
+      if (!address.trim()) {
+        setErrorMessage('Please enter your full delivery address.');
+        return;
+      }
+      const allowed = siteConfig.allowedPincodes || ['834001', '834002'];
+      const foundPins = address.match(/\b\d{6}\b/g);
+      if (foundPins) {
+        const hasValidPin = foundPins.some(pin => allowed.includes(pin));
+        if (!hasValidPin) {
+          setErrorMessage('Delivery is strictly limited to Ranchi pincodes 834001 and 834002. Please select an eligible address, or choose Store Pickup.');
+          return;
+        }
+      } else {
+        const hasAllowedPin = allowed.some(pin => address.includes(pin));
+        if (!hasAllowedPin) {
+          setErrorMessage('Please ensure your delivery address includes an eligible Ranchi pincode (834001 or 834002).');
+          return;
+        }
+      }
     }
 
     if (!mobile.trim() || mobile.trim().length < 10) {
@@ -257,7 +274,7 @@ const Checkout = () => {
                   <div className="font-bold text-primary flex items-center gap-2">
                     <FaTruck className="text-secondary" /> Home Delivery
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Delivered securely to your doorstep across India.</p>
+                  <p className="text-xs text-gray-500 mt-1">Available strictly for Ranchi pincodes 834001 & 834002.</p>
                   <div className="text-xs font-semibold text-green-700 mt-2">FREE Delivery</div>
                 </div>
               </label>

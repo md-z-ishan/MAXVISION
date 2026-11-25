@@ -67,7 +67,15 @@ const Cart = () => {
           {items.map(item => (
             <div key={item.id} className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-gray-100 last:border-0 last:pb-0">
               <div className="w-32 h-32 bg-light rounded-lg flex items-center justify-center p-2">
-                <img src={item.product.image || "https://via.placeholder.com/150"} alt={item.product.name} className="w-full h-full object-contain mix-blend-multiply" />
+                <img 
+                  src={item.product.image_url || item.product.image || "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=300&h=300&fit=crop&auto=format"} 
+                  alt={item.product.name} 
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=300&h=300&fit=crop";
+                  }}
+                  className="w-full h-full object-contain mix-blend-multiply" 
+                />
               </div>
               
               <div className="flex-grow">
@@ -130,8 +138,8 @@ const Cart = () => {
               <span>Delivery Charges</span>
               <span>FREE</span>
             </div>
-            <div className="text-[11px] text-gray-500 bg-gray-50 p-2 rounded border border-gray-150">
-              Delivery ki details store WhatsApp par confirm karega.
+            <div className="text-[11px] text-teal-800 bg-teal-50/80 p-2.5 rounded-lg border border-teal-200">
+              <span className="font-bold">📍 Delivery Pincodes:</span> Available strictly for Ranchi <strong>834001</strong> & <strong>834002</strong>. Free Store Pickup available for all areas.
             </div>
             <div className="flex justify-between font-bold text-lg pt-4 border-t border-gray-100">
               <span>Total Payable</span>

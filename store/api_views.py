@@ -298,6 +298,24 @@ class CheckoutAPI(APIView):
         else:
             if not address:
                 return Response({"error": "Delivery address is required for Home Delivery."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Strict Ranchi Delivery Pincode Enforcement: Only 834001 and 834002
+            ALLOWED_DELIVERY_PINCODES = {'834001', '834002'}
+            pincode_param = str(request.data.get('pincode', '')).strip()
+            if pincode_param and pincode_param not in ALLOWED_DELIVERY_PINCODES:
+                return Response(
+                    {"error": "Delivery is available ONLY for Ranchi pincodes 834001 and 834002. Please update your address or choose Store Pickup."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Check 6-digit pincodes in address string
+            found_pins = re.findall(r'\b\d{6}\b', address)
+            if found_pins and not any(pin in ALLOWED_DELIVERY_PINCODES for pin in found_pins):
+                return Response(
+                    {"error": "Delivery is available ONLY for Ranchi pincodes 834001 and 834002. Please update your address or choose Store Pickup."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
             delivery_charge = float(getattr(settings, 'DELIVERY_CHARGE', 0.0))
 
         if payment_method == 'UPI':

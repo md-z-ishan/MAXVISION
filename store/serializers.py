@@ -22,6 +22,15 @@ class AddressSerializer(serializers.ModelSerializer):
         fields = ['id', 'full_name', 'mobile', 'street_address', 'city', 'state', 'pincode', 'is_default', 'created_at']
         read_only_fields = ['id', 'created_at']
 
+    def validate_pincode(self, value):
+        val = str(value).strip()
+        ALLOWED_PINCODES = {'834001', '834002'}
+        if val not in ALLOWED_PINCODES:
+            raise serializers.ValidationError(
+                "Delivery is strictly limited to Ranchi pincodes 834001 and 834002."
+            )
+        return val
+
 class StorePaymentSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = StorePaymentSettings
@@ -29,9 +38,38 @@ class StorePaymentSettingsSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Product
         fields = '__all__'
+
+    def get_image(self, obj):
+        if obj.image:
+            try:
+                request = self.context.get('request')
+                if request:
+                    return request.build_absolute_uri(obj.image.url)
+                return f"http://127.0.0.1:8000{obj.image.url}"
+            except Exception:
+                pass
+        if obj.image_url:
+            return obj.image_url
+        return "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=600&h=450&fit=crop&auto=format"
+
+    def get_image_url(self, obj):
+        if obj.image_url:
+            return obj.image_url
+        if obj.image:
+            try:
+                request = self.context.get('request')
+                if request:
+                    return request.build_absolute_uri(obj.image.url)
+                return f"http://127.0.0.1:8000{obj.image.url}"
+            except Exception:
+                pass
+        return "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=600&h=450&fit=crop&auto=format"
 
 class CartSerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)

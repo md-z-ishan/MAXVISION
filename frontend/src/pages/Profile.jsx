@@ -92,6 +92,11 @@ const Profile = () => {
   const handleCreateAddress = async (e) => {
     e.preventDefault();
     setAddressError('');
+    const cleanPin = String(newAddress.pincode || '').trim();
+    if (!['834001', '834002'].includes(cleanPin)) {
+      setAddressError('Delivery is strictly limited to Ranchi pincodes 834001 and 834002.');
+      return;
+    }
     try {
       const res = await axios.post('addresses/', newAddress);
       setAddresses([...addresses, res.data]);
