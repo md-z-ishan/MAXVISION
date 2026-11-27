@@ -28,6 +28,8 @@
    - [4.9 Customer Profile, Address Book & Password Recovery](#49-customer-profile-address-book--password-recovery)
    - [4.10 Doorstep "Try @ Home" & Ranchi Store Locator](#410-doorstep-try--home--ranchi-store-locator)
    - [4.11 Virtual Try-On Studio](#411-virtual-try-on-studio)
+   - [4.12 Hyperlocal Ranchi Delivery Policy (834001 & 834002)](#412-hyperlocal-ranchi-delivery-policy-834001--834002)
+   - [4.13 Public Catalog Resilience & Decoupled JWT Auth](#413-public-catalog-resilience--decoupled-jwt-auth)
 5. [Role-Based Access Control (RBAC) Architecture](#-role-based-access-control-rbac-architecture)
 6. [Complete REST API Reference](#-complete-rest-api-reference)
 7. [Database Schema & Data Models](#-database-schema--data-models)
@@ -141,8 +143,10 @@ Every feature has been audited against actual source code and automated tests. F
 | **Automated Tax Invoicing** | GST-compliant ReportLab PDF invoice | **VERIFIED** | Itemized invoice generated on-the-fly with Ranchi shop address, downloadable by customer and staff. |
 | **Customer Address Book** | Multi-address CRUD with default selector | **VERIFIED** | Object-level user isolation; default address toggle updates siblings atomically. |
 | **Store Locator & Directions** | Ranchi Sheetal Tower Showroom | **VERIFIED** | Google Maps link and dual store call buttons (`7485067874` / `7033353140`). |
+| **Hyperlocal Delivery (834001/834002)** | Strict delivery pincode gate | **VERIFIED** | Enforced across Product Details, Cart, Checkout, Profile, and Backend `AddressSerializer` / `CheckoutAPI`. In-store pickup available for all. |
+| **Public Catalog Resilience** | Optional JWT auth & Token refresh | **VERIFIED** | Public product catalog protected against 401 crashes on expired visitor tokens; auto Axios refresh & fallback. |
 | **Role-Based Access Control** | 3-Tier Access (Developer, Shop Owner, Customer) | **VERIFIED** | Developer (Superuser), Single Shop Owner (18 permissions, locks), Customer (isolated). |
-| **Automated Test Suite** | 42 unit & concurrency tests | **VERIFIED** | 42/42 tests passing in 15.817s across the entire project. |
+| **Automated Test Suite** | 48 unit & concurrency/pincode tests | **VERIFIED** | 48/48 tests passing in 16.5s across the entire project with 0 issues identified. |
 | **Manual UPI QR Payment** | Singleton `StorePaymentSettings` & UTR | **PENDING OWNER CONFIG** | Code and UI complete; requires shop owner to upload official QR code and verify UPI ID in Django Admin. |
 | **WhatsApp Order Confirm** | Click-to-chat `wa.me` order summary link | **PENDING OWNER CONFIG** | URL generator tested; requires shop owner to confirm primary active WhatsApp number (`917485067874`). |
 | **Doorstep "Try @ Home"** | Home visit booking in Ranchi | **PENDING OWNER CONFIG** | Database model and booking form verified; requires store owner operational staff to service visits. |
@@ -177,13 +181,16 @@ Every feature has been audited against actual source code and automated tests. F
   - `store/media_views.py:protected_media_serve` intercepts direct requests, returning **HTTP 403 Forbidden**.
   - Authenticated downloads are permitted strictly through `/api/orders/<id>/prescription/` for the order owner or staff.
 
-### 4.3 Lens Package Engine
+### 4.3 Lens Package Engine & Product Page CTAs
 * **Verified Pricing Tiers:**
   - **Frame Only (+₹0):** Shipped with acrylic demonstration lenses.
   - **Zero Power Blu Cut (+₹300):** Blue-light filter lenses for computer work.
   - **Single Vision Anti-Glare (+₹500):** Distance or reading corrective power.
   - **Bifocal / Progressive (+₹1,500):** Dual-vision or progressive transition lenses.
 * **Server-Side Enforcement:** Lens prices are validated strictly in `store/api_views.py:CartViewSet` and `CheckoutAPI`. Any client-side price manipulation is completely disregarded.
+* **Streamlined eCommerce Actions:**
+  - Product Details page features a clean, high-conversion button pair: **Add to Cart** and **Buy Now**.
+  - Redundant enquiry buttons ("WhatsApp par poocho") have been removed from product view pages to eliminate checkout friction, while authorized WhatsApp touchpoints (floating bottom-right button, footer, order tracking, and invoice sharing) remain active.
 
 ### 4.4 Atomic Conditional Stock Engine
 * **Race-Condition Immune:** Eliminates overselling via conditional database update queries:
@@ -228,13 +235,36 @@ Every feature has been audited against actual source code and automated tests. F
 * **Address Book:** Multi-address support with default shipping address selection.
 * **Password Recovery:** Secure token-based password reset workflow (`/api/auth/password-reset-request/` & `/api/auth/password-reset-confirm/`).
 
-### 4.10 Doorstep "Try @ Home" & Ranchi Store Locator
+### 4.10 Doorstep "Try @ Home", Ranchi Store Locator & Homepage Services
 * **Doorstep Home Visit Booking (`/try-at-home`):** Ranchi residents can schedule a free home visit for eye testing and frame trials. Requests are tracked in Django Admin (`HomeVisitRequest`).
 * **Store Locator (`/stores`):** Interactive Ranchi showroom guide with direct Google Maps directions and dual one-click call buttons (`7485067874` / `7033353140`).
+* **Homepage "Premium Eye Care Services" Integration:**
+  - **Visit Store Card:** Directly linked to `/stores` with interactive hover animations.
+  - **Home Visit Card:** Directly linked to `/try-at-home` for doorstep appointment bookings.
+  - **Try Virtual Card:** Renamed from "Online Test" and directly routed to the 3D Virtual Try-On Studio (`/try-on`).
 
-### 4.11 Virtual Try-On Studio
-* 2D webcam and photo overlay try-on module allowing shoppers to visualize frame fit and shape on their face.
-* Studio controls protected by staff permissions.
+### 4.11 Virtual Try-On Studio & Desktop Navigation
+* **3D Virtual Fitting (`/try-on`):** Live photographic webcam mirror with interactive frame selector, lens tint preview, and scale adjustment.
+* **Streamlined Header Navigation Sequence:**
+  1. `EYEGLASSES` (`/products?category=eyeglasses`)
+  2. `SUNGLASSES` (`/products?category=sunglasses`)
+  3. `CONTACT LENSES` (`/products?category=contact_lenses` — updated for clear clinical labeling)
+  4. `SPECIAL POWER` (`/special-power`)
+  5. `STORES` (`/stores`)
+  6. `TRY @ HOME` (`/try-at-home`)
+  7. `VIRTUAL 3D TRY-ON` (`/try-on`)
+
+### 4.12 Hyperlocal Ranchi Delivery Policy (834001 & 834002)
+* **Hyperlocal Delivery Focus:** Delivery is strictly restricted to Ranchi municipal pincodes **834001** and **834002**.
+* **Zero API Bypass:**
+  - `store/serializers.py:AddressSerializer`: Validates that `pincode` matches only `834001` or `834002`, returning HTTP 400 for external pincodes.
+  - `store/api_views.py:CheckoutAPI`: Enforces strict delivery pincode validation on order checkout.
+  - Frontend Pincode Checkers in `ProductDetails.jsx`, `Cart.jsx`, and `Checkout.jsx` provide real-time visual validation.
+* **Store Pickup Availability:** Customers from other regions can select in-store pickup at the Sheetal Tower showroom.
+
+### 4.13 Public Catalog Resilience & Decoupled JWT Auth
+* **Optional JWT Authentication:** `OptionalJWTAuthentication` in `store/api_views.py` ensures that guest visitors or customers with expired `localStorage` tokens can freely browse `/api/products/` and view items without triggering DRF HTTP 401 Unauthorized errors.
+* **Axios Auto-Refresh Interceptor:** `frontend/src/api/axios.js` intercepts 401 responses, attempts automatic token refresh via `/api/auth/refresh/`, cleans up invalid tokens, and transparently retries public catalog queries.
 
 ---
 
@@ -435,12 +465,16 @@ The repository contains a comprehensive automated test suite covering all core b
 | `store.tests_stage9` | Production settings, throttling scopes, environment variables | 4 | ✅ Pass |
 | `store.tests_concurrency` | High-concurrency rapid checkout inventory protection | 1 | ✅ Pass |
 | `store.tests_stage11_rbac` | RBAC roles, Django admin hardening, prescription privacy (HTTP 403) | 13 | ✅ Pass |
-| **Total Project Test Suite** | **Full End-to-End Automated Test Verification** | **42** | **✅ 42/42 Pass (15.8s)** |
+| `store.tests_product_delivery` | Ranchi pincodes (834001/834002), outside rejection, API bypass, image URLs | 6 | ✅ Pass |
+| **Total Project Test Suite** | **Full End-to-End Automated Test Verification** | **48** | **✅ 48/48 Pass (16.5s)** |
 
 ### Running the Test Suite:
 ```bash
-# Run the entire test suite (42 tests):
+# Run the entire test suite (48 tests):
 python3 manage.py test --noinput
+
+# Run pincode delivery tests:
+python3 manage.py test store.tests_product_delivery --noinput
 
 # Run RBAC security tests specifically:
 python3 manage.py test store.tests_stage11_rbac --noinput
@@ -536,7 +570,8 @@ maxvision/
 │   ├── tests_stage8b.py               # Invoicing & Address book tests
 │   ├── tests_stage9.py                # Security & Throttling tests
 │   ├── tests_concurrency.py           # Concurrency stock tests
-│   └── tests_stage11_rbac.py          # Full RBAC & security tests
+│   ├── tests_stage11_rbac.py          # Full RBAC & security tests
+│   └── tests_product_delivery.py      # Ranchi pincode & delivery validation tests
 │
 ├── frontend/                          # React 18 + Vite SPA frontend
 │   ├── package.json                   # NPM package manifest
@@ -563,6 +598,7 @@ maxvision/
 │           └── Login.jsx / Register.jsx # Authentication screens
 │
 ├── docs/                              # Project documentation & operational handbooks
+│   ├── BUG_TRACKER.md                 # Complete QA defect log & remediation status
 │   ├── OWNER_HANDOVER.md              # Shop Owner operational manual for Django Admin
 │   ├── DEVELOPER_ACCESS.md            # Developer technical guide & account rotation
 │   ├── ROLE_PERMISSION_MATRIX.md      # Detailed RBAC permissions matrix
@@ -626,6 +662,7 @@ For specialized operational guidelines and deep-dive technical manuals, consult 
 * 📖 **[Shop Owner Handover Guide](docs/OWNER_HANDOVER.md)** — Step-by-step business management guide for the shopkeeper (managing products, orders, UPI approvals, and downloading invoices).
 * 🔧 **[Developer Technical Access Guide](docs/DEVELOPER_ACCESS.md)** — Handbook for developers covering superuser credentials, database rotation, management commands, and environment setups.
 * 🛡️ **[Role & Permission Matrix](docs/ROLE_PERMISSION_MATRIX.md)** — Complete access control mapping across Developer, Shop Owner, Customer, and Anonymous users.
+* 🐛 **[QA Bug Tracker & Remediation Log](docs/BUG_TRACKER.md)** — Detailed defect tracking, root-cause analyses, and retest verification states.
 * 🧪 **[Pre-Deployment QA Report](docs/PREDEPLOY_QA.md)** — Multi-device responsive design verification, security checks, and audit trails.
 * 📝 **[Full Engineering Development Log](docs/DEV_LOG.md)** — Detailed chronological changelog documenting implementation across all project stages.
 
