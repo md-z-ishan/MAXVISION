@@ -320,3 +320,26 @@ cp backups/db.sqlite3 db.sqlite3
 * Ran complete test suite: **48 tests passed (0 failures, 0 errors) in 15.2s**.
 * Ran `python3 manage.py check`: **0 issues identified**.
 * Verified responsive layout across 7 device viewports (320px, 375px, 430px, 768px, 1024px, 1366px, 1920px) with zero horizontal overflow.
+
+
+---
+
+## [Stage 13] Homepage "Premium Eye Care Services" Navigation & Card Renaming
+**Date:** 2026-11-27  
+**Branch:** `feature/full-build` (Strictly local commits, no push)  
+
+### 1. Card Linking & Navigation Architecture
+* **Visit Store Card:** Wrapped with React Router `<Link to="/stores">` ensuring seamless client-side navigation to the MAXVISION Store Locator (`/stores`) identical to clicking "STORES" in the desktop navigation header.
+* **Home Visit Card:** Wrapped with React Router `<Link to="/try-at-home">` directing users straight to the "Book Free Try @ Home" booking workflow (`/try-at-home`).
+* **Try Virtual Card:**
+  * Renamed card title from "Online Test" to **"Try Virtual"**.
+  * Wrapped with React Router `<Link to="/try-on">` directing users directly to the Real Photographic 3D Virtual Mirror experience (`/try-on`).
+
+### 2. Interaction & Visual Consistency
+* Maintained full hover elevation (`whileHover={{ y: -10 }}`), interactive cursor (`cursor-pointer`), arrow icon hover animations, and zero-layout-shift container styling (`h-full`).
+
+### 3. Verification & Compliance
+* Live DOM verified via Chrome: all three cards render valid `<a class="block focus:outline-none" href="...">` anchors with exact corresponding routes.
+* Django test suite passed: `48/48 tests PASS`.
+* System check clean: `0 issues identified`.
+* Zero deletions: strictly additive linking, no existing components or features removed.
