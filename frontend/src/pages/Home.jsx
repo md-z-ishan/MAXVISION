@@ -335,62 +335,68 @@ const Home = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             
-            <motion.div 
-              whileHover={{ y: -10 }}
-              transition={{ type: "spring", stiffness: 200 }}
-              className="bg-white rounded-2xl overflow-hidden border border-gray-100 group cursor-pointer transition-all shadow-sm hover:shadow-lg"
-            >
-              <div className="relative h-72 overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&q=80&w=800" alt="Store Visit" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-              </div>
-              <div className="p-8 flex justify-between items-center">
-                <div>
-                  <h3 className="font-black text-primary text-2xl md:text-3xl mb-2">Visit Store</h3>
-                  <p className="text-gray-500 text-base md:text-lg font-bold">VIP in-person assessment</p>
+            <Link to="/stores" className="block focus:outline-none">
+              <motion.div 
+                whileHover={{ y: -10 }}
+                transition={{ type: "spring", stiffness: 200 }}
+                className="bg-white rounded-2xl overflow-hidden border border-gray-100 group cursor-pointer transition-all shadow-sm hover:shadow-lg h-full"
+              >
+                <div className="relative h-72 overflow-hidden">
+                  <img src="https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&q=80&w=800" alt="Store Visit" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                 </div>
-                <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                <div className="p-8 flex justify-between items-center">
+                  <div>
+                    <h3 className="font-black text-primary text-2xl md:text-3xl mb-2">Visit Store</h3>
+                    <p className="text-gray-500 text-base md:text-lg font-bold">VIP in-person assessment</p>
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </Link>
 
-            <motion.div 
-              whileHover={{ y: -10 }}
-              transition={{ type: "spring", stiffness: 200 }}
-              className="bg-white rounded-2xl overflow-hidden border border-gray-100 group cursor-pointer transition-all shadow-sm hover:shadow-lg"
-            >
-              <div className="relative h-72 overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1577803645773-f96470509666?auto=format&fit=crop&q=80&w=800" alt="Home Visit" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-              </div>
-              <div className="p-8 flex justify-between items-center">
-                <div>
-                  <h3 className="font-black text-primary text-2xl md:text-3xl mb-2">Home Visit</h3>
-                  <p className="text-gray-500 text-base md:text-lg font-bold">We bring the suite to you</p>
+            <Link to="/try-at-home" className="block focus:outline-none">
+              <motion.div 
+                whileHover={{ y: -10 }}
+                transition={{ type: "spring", stiffness: 200 }}
+                className="bg-white rounded-2xl overflow-hidden border border-gray-100 group cursor-pointer transition-all shadow-sm hover:shadow-lg h-full"
+              >
+                <div className="relative h-72 overflow-hidden">
+                  <img src="https://images.unsplash.com/photo-1577803645773-f96470509666?auto=format&fit=crop&q=80&w=800" alt="Home Visit" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                 </div>
-                <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                <div className="p-8 flex justify-between items-center">
+                  <div>
+                    <h3 className="font-black text-primary text-2xl md:text-3xl mb-2">Home Visit</h3>
+                    <p className="text-gray-500 text-base md:text-lg font-bold">We bring the suite to you</p>
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </Link>
 
-            <motion.div 
-              whileHover={{ y: -10 }}
-              transition={{ type: "spring", stiffness: 200 }}
-              className="bg-white rounded-2xl overflow-hidden border border-gray-100 group cursor-pointer transition-all shadow-sm hover:shadow-lg"
-            >
-              <div className="relative h-72 overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800" alt="Online Test" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-              </div>
-              <div className="p-8 flex justify-between items-center">
-                <div>
-                  <h3 className="font-black text-primary text-2xl md:text-3xl mb-2">Online Test</h3>
-                  <p className="text-gray-500 text-base md:text-lg font-bold">AI-Assisted screening</p>
+            <Link to="/try-on" className="block focus:outline-none">
+              <motion.div 
+                whileHover={{ y: -10 }}
+                transition={{ type: "spring", stiffness: 200 }}
+                className="bg-white rounded-2xl overflow-hidden border border-gray-100 group cursor-pointer transition-all shadow-sm hover:shadow-lg h-full"
+              >
+                <div className="relative h-72 overflow-hidden">
+                  <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800" alt="Try Virtual" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                 </div>
-                <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                <div className="p-8 flex justify-between items-center">
+                  <div>
+                    <h3 className="font-black text-primary text-2xl md:text-3xl mb-2">Try Virtual</h3>
+                    <p className="text-gray-500 text-base md:text-lg font-bold">AI-Assisted screening</p>
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </Link>
 
           </div>
         </div>
