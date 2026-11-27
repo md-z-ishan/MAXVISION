@@ -28,13 +28,14 @@
 | **BUG-QA-007** | **P3** | Product Details / Product Title Clipping | Long product titles clipped or truncated awkwardly on smaller mobile viewports (320px - 430px). | CSS lacked proper line-clamp and responsive font scaling wrapper. | Implemented responsive clamp classes (`text-xl sm:text-2xl lg:text-3xl font-bold leading-tight break-words`) ensuring zero clipping across all viewports. | **VERIFIED PASS** |
 | **BUG-QA-008** | **P1** | Delivery Pincode Policy / API Bypass Protection | Non-Ranchi pincodes (e.g., 110001, 700001) were accepted during address creation and checkout API calls. | Missing backend validation filter for hyperlocal Ranchi delivery constraint. | Enforced strict `834001` and `834002` validation in `AddressSerializer.validate_pincode` and `CheckoutAPI.post` regex/param checks (HTTP 400 rejection for any other pincode). Synchronized with frontend `siteConfig.allowedPincodes`, `ProductDetails`, `Cart`, `Checkout`, and `Profile`. | **VERIFIED PASS** |
 | **BUG-QA-009** | **P2** | Product Details / Redundant WhatsApp Enquiry Button | Product Details page displayed a distracting "WhatsApp par poocho" button instead of direct e-commerce purchase actions. | Legacy quick-enquiry CTA retained alongside standard checkout buttons. | Removed WhatsApp button completely from `ProductDetails.jsx`; replaced with primary `Add to Cart` and `Buy Now` button pair. Preserved all authorized WhatsApp integrations (floating button, footer, order tracking, invoice). | **VERIFIED PASS** |
+| **BUG-QA-010** | **P1** | Public Catalog / Stale JWT Token HTTP 401 Rejection | Browsing product catalog with an expired/invalid JWT in `localStorage` returned HTTP 401 Unauthorized, failing to load products. | DRF SimpleJWT runs authentication before permissions; invalid bearer header crashed public view instead of falling back to anonymous user. | Implemented `OptionalJWTAuthentication` on public product & health endpoints in `store/api_views.py`; added Axios 401 token refresh interceptor & public fallback in `frontend/src/api/axios.js`. | **VERIFIED PASS** |
 
 ---
 
 ## Defect Summary
-* **Total Bugs Identified During Multi-Stage Lifecycle:** 9
+* **Total Bugs Identified During Multi-Stage Lifecycle:** 10
 * **P0 Bugs:** 0 Open (0 Closed)
-* **P1 Bugs:** 0 Open (3 Closed)
+* **P1 Bugs:** 0 Open (4 Closed)
 * **P2 Bugs:** 0 Open (4 Closed)
 * **P3 Bugs:** 0 Open (2 Closed)
 * **Open Unresolved Bugs:** **0**

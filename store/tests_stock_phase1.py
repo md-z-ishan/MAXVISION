@@ -1,10 +1,26 @@
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 from rest_framework import status
 from store.models import Product, Cart, Order, OrderItem
 
 class StockAndCheckoutTestCase(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        from store.api_views import CheckoutAPI
+        cls._orig_throttle = getattr(CheckoutAPI, 'throttle_classes', None)
+        CheckoutAPI.throttle_classes = ()
+
+    @classmethod
+    def tearDownClass(cls):
+        from store.api_views import CheckoutAPI
+        if cls._orig_throttle is not None:
+            CheckoutAPI.throttle_classes = cls._orig_throttle
+        elif hasattr(CheckoutAPI, 'throttle_classes'):
+            delattr(CheckoutAPI, 'throttle_classes')
+        super().tearDownClass()
+
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(username='testcustomer', password='password123')

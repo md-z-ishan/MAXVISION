@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -29,10 +30,23 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+class OptionalJWTAuthentication(JWTAuthentication):
+    """
+    JWT authentication that safely falls back to AnonymousUser if an expired
+    or invalid token header is sent to a public endpoint, preventing 401 on public catalogs.
+    """
+    def authenticate(self, request):
+        try:
+            return super().authenticate(request)
+        except Exception:
+            return None
+
 # -- PRODUCT VIEWS --
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = [OptionalJWTAuthentication]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -613,6 +627,7 @@ class PasswordResetConfirmAPI(APIView):
 # -- PAYMENT SETTINGS & INVOICE APIS --
 class PaymentSettingsAPI(APIView):
     permission_classes = [permissions.AllowAny]
+    authentication_classes = [OptionalJWTAuthentication]
 
     def get(self, request):
         settings_obj = StorePaymentSettings.get_settings()

@@ -92,3 +92,4 @@ class ProductDeliveryAndPincodeTests(TestCase):
         self.assertTrue(data['image_url'])
         self.assertTrue(data['image'].startswith('http'))
         self.assertTrue(data['image_url'].startswith('http'))
+

@@ -125,10 +125,7 @@ const ProductDetails = () => {
         
         {/* Left: Product Image Showcase */}
         <div className="w-full md:w-1/2 flex flex-col items-center justify-center bg-gray-50/80 rounded-2xl p-4 sm:p-8 border border-gray-150 min-h-[300px] sm:min-h-[380px] md:min-h-[460px] self-start md:sticky md:top-24 overflow-hidden group">
-          <motion.img 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4 }}
+          <img 
             src={getProductImage(product)} 
             alt={product.name} 
             onError={(e) => {

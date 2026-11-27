@@ -343,3 +343,28 @@ cp backups/db.sqlite3 db.sqlite3
 * Django test suite passed: `48/48 tests PASS`.
 * System check clean: `0 issues identified`.
 * Zero deletions: strictly additive linking, no existing components or features removed.
+
+---
+
+## [Stage 14] Public Catalog JWT Decoupling & Test Suite Throttling Isolation
+**Date:** 2026-11-27  
+**Branch:** `feature/full-build` (Strictly local commits, no push)  
+
+### 1. Root Cause & Architecture Fix
+* **Problem:** When customers with expired/stale tokens visited public product endpoints (`GET /api/products/`), DRF SimpleJWT's default authenticator attempted token validation before permission evaluation, returning HTTP 401 Unauthorized and resulting in an empty catalog.
+* **Backend Decoupling (`store/api_views.py`):**
+  * Created `OptionalJWTAuthentication(JWTAuthentication)` that catches `InvalidToken` and authentication errors on public endpoints, gracefully falling back to `None` (`AnonymousUser`) instead of terminating with HTTP 401.
+  * Applied `OptionalJWTAuthentication` and `permission_classes = [permissions.AllowAny]` to `ProductViewSet`, `PaymentSettingsAPI`, and `HealthCheckAPI`.
+* **Frontend Resilience (`frontend/src/api/axios.js`):**
+  * Added response interceptor for HTTP 401 to refresh tokens or clean up stale session data and automatically retry public read requests without invalid authorization headers.
+* **Test Isolation (`store/tests_stock_phase1.py`):**
+  * Isolated DRF `ScopedRateThrottle` during unit tests by overriding `CheckoutAPI.throttle_classes` in `setUpClass` and restoring in `tearDownClass`, ensuring deterministic test execution without 429 rate limit errors.
+
+### 2. Verification & Compliance
+* `python3 manage.py test`: **48/48 tests PASS (0 failures, 0 errors)** in 16.5s.
+* `python3 manage.py check`: **0 issues identified**.
+* Live Endpoints verified:
+  * Backend: `http://localhost:8000/api/health/` -> HTTP 200 OK
+  * Public Products: `http://localhost:8000/api/products/` -> HTTP 200 OK (30 products loaded)
+  * Frontend: `http://localhost:5173/` -> HTTP 200 OK
+* Zero deletions verified: `git diff --diff-filter=D --name-only` returns 0 files.
